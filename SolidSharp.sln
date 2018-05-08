@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27428.2043
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SolidSharp", "SolidSharp\SolidSharp.csproj", "{B76ECB68-EB4F-4775-97B0-DB64AE86AD8F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SolidSharp.Tests", "SolidSharp.Tests\SolidSharp.Tests.csproj", "{23EB086F-93A5-4F61-B7EE-4A3D81B64A72}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{ED095CA7-B23B-4E6E-A756-F10036B3836A}"
+	ProjectSection(SolutionItems) = preProject
+		ReadMe.md = ReadMe.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B76ECB68-EB4F-4775-97B0-DB64AE86AD8F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B76ECB68-EB4F-4775-97B0-DB64AE86AD8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B76ECB68-EB4F-4775-97B0-DB64AE86AD8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B76ECB68-EB4F-4775-97B0-DB64AE86AD8F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23EB086F-93A5-4F61-B7EE-4A3D81B64A72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23EB086F-93A5-4F61-B7EE-4A3D81B64A72}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23EB086F-93A5-4F61-B7EE-4A3D81B64A72}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23EB086F-93A5-4F61-B7EE-4A3D81B64A72}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2CC01CC3-9ED2-4178-8BAB-F59AB0C9138E}
+	EndGlobalSection
+EndGlobal

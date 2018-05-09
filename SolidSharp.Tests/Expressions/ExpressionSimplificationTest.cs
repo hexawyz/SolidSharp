@@ -172,5 +172,25 @@ namespace SolidSharp.Tests.Expressions
 			Assert.Equal(t * t, SymbolicMath.Abs(t) * SymbolicMath.Abs(t));
 			Assert.Equal(t * t, SymbolicMath.Pow(SymbolicMath.Abs(t), 2));
 		}
+
+		public static TheoryData<decimal, long, long> DecimalNumberConversionData = new TheoryData<decimal, long, long>
+		{
+			{ 0.1m, 1, 10 },
+			{ 0.25m, 1, 4 },
+			{ 0.5m, 1, 2 },
+			{ 0.2m, 1, 5 },
+			{ 0.8m, 4, 5 },
+			{ 0.08m, 4, 50 },
+			{ 0.33m, 33, 100 },
+			{ 3.14159m, 314159, 100000 },
+			{ 1.625m, 13, 8 },
+		};
+
+		[Theory]
+		[MemberData(nameof(DecimalNumberConversionData))]
+		public void DecimalNumbersShouldConvertToFractions(decimal number, long numerator, long denominator)
+		{
+			Assert.Equal(SymbolicExpression.Constant(numerator) / SymbolicExpression.Constant(denominator), SymbolicExpression.Constant(number));
+		}
 	}
 }

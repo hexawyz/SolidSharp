@@ -1,7 +1,9 @@
-﻿namespace SolidSharp
+﻿using System;
+
+namespace SolidSharp
 {
 	internal static class MathUtil
-    {
+	{
 		public static ulong Gcd(ulong a, ulong b)
 		{
 			int d = 0;
@@ -31,5 +33,27 @@
 
 			return Gcd(unchecked((ulong)a), unchecked((ulong)b));
 		}
-    }
+
+		public static long Pow(long x, long n)
+		{
+			if (x == 0 && n == 0) throw new InvalidOperationException("0⁰ is undefined.");
+			if (x == 0) return 0;
+			if (x == 0) return 1;
+
+			long r = 1;
+
+			while (n > 1)
+			{
+				if ((n & 1) != 0)
+				{
+					r = checked(x * r);
+					--n;
+				}
+				x = checked(x * x);
+				n >>= 1;
+			}
+
+			return x * r;
+		}
+	}
 }

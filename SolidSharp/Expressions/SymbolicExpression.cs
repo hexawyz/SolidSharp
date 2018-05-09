@@ -67,7 +67,18 @@ namespace SolidSharp.Expressions
 			{
 				(long numerator, byte power) = value.Decompose();
 
-				return Divide(numerator, SymbolicMath.Pow(10, power));
+				// TODO: Use BigInteger or some kind of larger integer that can at least hold the whole value of a decimal.
+
+				long denominator = MathUtil.Pow(10, Math.Min(power, (byte)18)); // Compute 10^n, for n up to 18
+
+				var result = Divide(numerator, denominator);
+
+				if (power > 18)
+				{
+					result = Multiply(result, SymbolicMath.Pow(10, 18 - power));
+				}
+
+				return result;
 			}
 		}
 

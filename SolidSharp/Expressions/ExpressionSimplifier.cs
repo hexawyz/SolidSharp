@@ -228,19 +228,10 @@ namespace SolidSharp.Expressions
 			{
 				// TODO: To optimize away x/x in the general case, we need to assert that x is not null… (Assertions are needed !)
 
-				if (a.IsNumber()) // x / y => eval(x / y)
+				// Try to simplify numeric fractions
+				if (a.IsNumber() && TrySimplifyFraction(a.GetValue(), b.GetValue()) is SymbolicExpression result)
 				{
-					long v1 = a.GetValue();
-					long v2 = b.GetValue();
-
-					if (v1 == v2) return NumberExpression.One; // x / x => 1
-
-					long gcd = checked((long)MathUtil.Gcd(v1, v2));
-
-					if (gcd > 1)
-					{
-						return SymbolicExpression.Constant(v1 / gcd) / SymbolicExpression.Constant(v2 / gcd);
-					}
+					return result;
 				}
 			}
 
@@ -261,6 +252,19 @@ namespace SolidSharp.Expressions
 			else if (b.IsPower()) // x / (yⁿ) => x * y⁻ⁿ
 			{
 				var op2 = (BinaryOperationExpression)b;
+
+				if (a.IsNumber() && op2.FirstOperand.IsNumber() && op2.SecondOperand.IsNumber())
+				{
+					try
+					{
+						long value = MathUtil.Pow(op2.FirstOperand.GetValue(), op2.SecondOperand.GetValue());
+						if (TrySimplifyFraction(a.GetValue(), value) is SymbolicExpression result) return result;
+					}
+					catch (OverflowException) // It is expected, that sometimes, power will be too big.
+					{
+					}
+				}
+
 				return a * SymbolicMath.Pow(op2.FirstOperand, -op2.SecondOperand);
 			}
 
@@ -281,6 +285,20 @@ namespace SolidSharp.Expressions
 			{
 				var op2 = (BinaryOperationExpression)b;
 				return a * op2.SecondOperand / op2.FirstOperand;
+			}
+
+			return null;
+		}
+
+		private static SymbolicExpression TrySimplifyFraction(long v1, long v2)
+		{
+			if (v1 == v2) return NumberExpression.One; // x / x => 1
+
+			long gcd = checked((long)MathUtil.Gcd(v1, v2));
+
+			if (gcd > 1)
+			{
+				return SymbolicExpression.Constant(v1 / gcd) / SymbolicExpression.Constant(v2 / gcd);
 			}
 
 			return null;

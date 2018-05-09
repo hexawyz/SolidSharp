@@ -9,9 +9,14 @@ namespace SolidSharp.Expressions
 		public string Name { get; }
 
 		public override ExpressionKind Kind => ExpressionKind.Variable;
-		
+
 		internal VariableExpression(string name)
-			=> Name = name ?? throw new ArgumentNullException(nameof(name));
+		{
+			if (name == null) throw new ArgumentNullException(nameof(name));
+			if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException();
+
+			Name = name;
+		}
 
 		public override string ToString() => Name;
 

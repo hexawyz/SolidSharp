@@ -1,6 +1,7 @@
 ﻿using SolidSharp.Expressions;
 using System.Collections.Immutable;
 using Xunit;
+using static SolidSharp.Expressions.SymbolicMath;
 
 namespace SolidSharp.Tests.Expressions
 {
@@ -9,56 +10,41 @@ namespace SolidSharp.Tests.Expressions
 		[Fact]
 		public void DoubleNegationShouldBeNegated()
 		{
-			var t = SymbolicExpression.Variable("𝓉");
-
-			Assert.Same(t, SymbolicExpression.Negate(SymbolicExpression.Negate(t)));
+			var t = Var("𝓉");
+			
 			Assert.Same(t, -(-t));
 		}
 
 		[Fact]
 		public void PowersShouldSum()
 		{
-			var t = SymbolicExpression.Variable("𝓉");
-			var x = SymbolicExpression.Variable("𝓍");
-			var y = SymbolicExpression.Variable("𝓎");
-
-			var expected = SymbolicMath.Pow(t, SymbolicExpression.Add(x, y));
-			Assert.Equal(expected, SymbolicMath.Pow(t, x + y)); // Verify that everything parses correctly
-
-			Assert.Equal(expected, SymbolicExpression.Multiply(SymbolicMath.Pow(t, x), SymbolicMath.Pow(t, y)));
-			Assert.Equal(expected, SymbolicMath.Pow(t, x) * SymbolicMath.Pow(t, y));
+			var t = Var("𝓉");
+			var x = Var("𝓍");
+			var y = Var("𝓎");
+			
+			Assert.Equal(Pow(t, x + y), Pow(t, x) * Pow(t, y));
 		}
 
 		[Fact]
 		public void PowersShouldSubstract()
 		{
-			var t = SymbolicExpression.Variable("𝓉");
-			var x = SymbolicExpression.Variable("𝓍");
-			var y = SymbolicExpression.Variable("𝓎");
-
-			var expected = SymbolicMath.Pow(t, SymbolicExpression.Subtract(x, y));
-			Assert.Equal(expected, SymbolicMath.Pow(t, x - y)); // Verify that everything parses correctly
-
-			Assert.Equal(expected, SymbolicExpression.Divide(SymbolicMath.Pow(t, x), SymbolicMath.Pow(t, y)));
-			Assert.Equal(expected, SymbolicMath.Pow(t, x) / SymbolicMath.Pow(t, y));
+			var t = Var("𝓉");
+			var x = Var("𝓍");
+			var y = Var("𝓎");
+			
+			Assert.Equal(Pow(t, x - y), Pow(t, x) / Pow(t, y));
 		}
 
 		[Fact]
 		public void AdditionsShouldMerge()
 		{
-			var x = SymbolicExpression.Variable("𝓍");
-			var y = SymbolicExpression.Variable("𝓎");
-			var z = SymbolicExpression.Variable("𝓏");
-			var w = SymbolicExpression.Variable("𝓌");
+			var x = Var("𝓍");
+			var y = Var("𝓎");
+			var z = Var("𝓏");
+			var w = Var("𝓌");
 
-			var expected = SymbolicExpression.Add(ImmutableArray.Create<SymbolicExpression>(x, y, z, w));
-
-			Assert.Equal(expected, SymbolicExpression.Add(x, SymbolicExpression.Add(y, SymbolicExpression.Add(z, w))));
-			Assert.Equal(expected, SymbolicExpression.Add(x, SymbolicExpression.Add(SymbolicExpression.Add(y, z), w)));
-			Assert.Equal(expected, SymbolicExpression.Add(SymbolicExpression.Add(x, y), SymbolicExpression.Add(z, w)));
-			Assert.Equal(expected, SymbolicExpression.Add(SymbolicExpression.Add(x, SymbolicExpression.Add(y, z)), w));
-			Assert.Equal(expected, SymbolicExpression.Add(SymbolicExpression.Add(SymbolicExpression.Add(x, y), z), w));
-
+			var expected = SymbolicExpression.Add(ImmutableArray.Create(x, y, z, w));
+			
 			Assert.Equal(expected, x + (y + (z + w)));
 			Assert.Equal(expected, x + ((y + z) + w));
 			Assert.Equal(expected, (x + y) + (z + w));
@@ -69,31 +55,21 @@ namespace SolidSharp.Tests.Expressions
 		[Fact]
 		public void IdentitySubtractionsShouldCancel()
 		{
-			var t = SymbolicExpression.Variable("𝓉");
-			var zero = SymbolicExpression.Constant(0);
-
-			Assert.Same(zero, SymbolicExpression.Subtract(t, t));
-			Assert.Same(zero, t - t);
+			var t = Var("𝓉");
+			
+			Assert.Same(Zero, t - t);
 		}
 
 		[Fact]
 		public void NegationShouldConvertToSubtraction()
 		{
-			var t = SymbolicExpression.Variable("𝓉");
-			var x = SymbolicExpression.Variable("𝓍");
-			var y = SymbolicExpression.Variable("𝓎");
+			var t = Var("𝓉");
+			var x = Var("𝓍");
+			var y = Var("𝓎");
 			
-			var expected1 = SymbolicExpression.Subtract(x, y);
-			Assert.Equal(expected1, SymbolicExpression.Add(x, SymbolicExpression.Negate(y)));
-			Assert.Equal(expected1, x + (-y));
-
-			var expected2 = SymbolicExpression.Subtract(y, x);
-			Assert.Equal(expected2, SymbolicExpression.Add(SymbolicExpression.Negate(x), y));
-			Assert.Equal(expected2, (-x) + y);
-
-			var zero = SymbolicExpression.Constant(0);
-			Assert.Same(zero, SymbolicExpression.Add(t, SymbolicExpression.Negate(t)));
-			Assert.Same(zero, t + (-t));
+			Assert.Equal(x - y, x + (-y));
+			Assert.Equal(y - x, (-x) + y);
+			Assert.Same(Zero, t + (-t));
 		}
 
 		[Theory]
@@ -108,8 +84,8 @@ namespace SolidSharp.Tests.Expressions
 		[InlineData(3, 37)]
 		public void FractionsShouldNeutralize(int x, int y)
 		{
-			Assert.Equal(SymbolicExpression.Constant(1), (SymbolicExpression.Constant(x) / SymbolicExpression.Constant(y)) * (SymbolicExpression.Constant(y) / SymbolicExpression.Constant(x)));
-			Assert.Equal(SymbolicExpression.Constant(1), (SymbolicExpression.Constant(y) / SymbolicExpression.Constant(x)) * (SymbolicExpression.Constant(x) / SymbolicExpression.Constant(y)));
+			Assert.Equal(N(1), (N(x) / N(y)) * (N(y) / N(x)));
+			Assert.Equal(N(1), (N(y) / N(x)) * (N(x) / N(y)));
 		}
 
 		[Theory]
@@ -118,25 +94,25 @@ namespace SolidSharp.Tests.Expressions
 		[InlineData(1, 7, 3, 21)]
 		public void FractionsShouldSimplify(int pa, int qa, int pb, int qb)
 		{
-			Assert.Equal(SymbolicExpression.Constant(pa) / SymbolicExpression.Constant(qa), SymbolicExpression.Constant(pb) / SymbolicExpression.Constant(qb));
+			Assert.Equal(N(pa) / N(qa), N(pb) / N(qb));
 		}
 
 		[Fact]
 		public void SquareRootSquaredShouldNegate()
 		{
-			var t = SymbolicExpression.Variable("𝓉");
+			var t = Var("𝓉");
 
-			Assert.Same(t, SymbolicMath.Pow(SymbolicMath.Sqrt(t), 2));
-			Assert.Same(t, SymbolicMath.Sqrt(t) * SymbolicMath.Sqrt(t));
+			Assert.Same(t, Pow(Sqrt(t), 2));
+			Assert.Same(t, Sqrt(t) * Sqrt(t));
 		}
 
 		[Fact]
 		public void SquareRootOfSquareShouldBeAbsoluteValue()
 		{
-			var t = SymbolicExpression.Variable("𝓉");
+			var t = Var("𝓉");
 
-			Assert.Equal(SymbolicMath.Abs(t), SymbolicMath.Sqrt(SymbolicMath.Pow(t, 2)));
-			Assert.Equal(SymbolicMath.Abs(t), SymbolicMath.Sqrt(t * t));
+			Assert.Equal(Abs(t), Sqrt(Pow(t, 2)));
+			Assert.Equal(Abs(t), Sqrt(t * t));
 		}
 
 		[Theory]
@@ -149,28 +125,28 @@ namespace SolidSharp.Tests.Expressions
 		[InlineData(77777777)]
 		public void RootShouldBeNegatedByPower(long value)
 		{
-			var t = SymbolicExpression.Variable("𝓉");
+			var t = Var("𝓉");
 
-			Assert.Same(t, SymbolicMath.Pow(SymbolicMath.Root(t, value), value));
+			Assert.Same(t, Pow(Root(t, value), value));
 		}
 
 		[Fact]
 		public void AbsoluteValueOfSquaredShouldGoAway()
 		{
-			var t = SymbolicExpression.Variable("𝓉");
+			var t = Var("𝓉");
 
-			Assert.NotEqual(t, SymbolicMath.Abs(t));
-			Assert.Equal(t * t, SymbolicMath.Abs(t * t));
+			Assert.NotEqual(t, Abs(t));
+			Assert.Equal(t * t, Abs(t * t));
 		}
 
 		[Fact]
 		public void AbsoluteValueSquaredShouldGoAway()
 		{
-			var t = SymbolicExpression.Variable("𝓉");
+			var t = Var("𝓉");
 
-			Assert.NotEqual(t, SymbolicMath.Abs(t));
-			Assert.Equal(t * t, SymbolicMath.Abs(t) * SymbolicMath.Abs(t));
-			Assert.Equal(t * t, SymbolicMath.Pow(SymbolicMath.Abs(t), 2));
+			Assert.NotEqual(t, Abs(t));
+			Assert.Equal(t * t, Abs(t) * Abs(t));
+			Assert.Equal(t * t, Pow(Abs(t), 2));
 		}
 
 		public static TheoryData<decimal, long, long> DecimalNumberConversionData = new TheoryData<decimal, long, long>
@@ -190,7 +166,7 @@ namespace SolidSharp.Tests.Expressions
 		[MemberData(nameof(DecimalNumberConversionData))]
 		public void DecimalNumbersShouldConvertToFractions(decimal number, long numerator, long denominator)
 		{
-			Assert.Equal(SymbolicExpression.Constant(numerator) / SymbolicExpression.Constant(denominator), SymbolicExpression.Constant(number));
+			Assert.Equal(N(numerator) / N(denominator), N(number));
 		}
 	}
 }

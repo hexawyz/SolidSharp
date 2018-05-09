@@ -134,24 +134,41 @@ namespace SolidSharp.Expressions
 		public static SymbolicExpression operator /(SymbolicExpression a, SymbolicExpression b)
 			=> Divide(a, b);
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static implicit operator SymbolicExpression(sbyte value) => Constant(value);
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static implicit operator SymbolicExpression(byte value) => Constant(value);
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static implicit operator SymbolicExpression(short value) => Constant(value);
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static implicit operator SymbolicExpression(ushort value) => Constant(value);
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static implicit operator SymbolicExpression(int value) => Constant(value);
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static implicit operator SymbolicExpression(uint value) => Constant(value);
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static implicit operator SymbolicExpression(long value) => Constant(value);
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static implicit operator SymbolicExpression(ulong value) => Constant(value);
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static implicit operator SymbolicExpression(float value) => Constant(value);
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static implicit operator SymbolicExpression(double value) => Constant(value);
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static implicit operator SymbolicExpression(decimal value) => Constant(value);
 
-		public static implicit operator SymbolicExpression(float value) => Constant(value);
-		public static implicit operator SymbolicExpression(double value) => Constant(value);
-
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static SymbolicEquation operator ==(SymbolicExpression a, SymbolicExpression b) => new SymbolicEquation(ComparisonOperator.EqualTo, a, b);
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static SymbolicEquation operator !=(SymbolicExpression a, SymbolicExpression b) => new SymbolicEquation(ComparisonOperator.NotEqualTo, a, b);
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static SymbolicEquation operator <(SymbolicExpression a, SymbolicExpression b) => new SymbolicEquation(ComparisonOperator.LessThan, a, b);
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static SymbolicEquation operator <=(SymbolicExpression a, SymbolicExpression b) => new SymbolicEquation(ComparisonOperator.LessThanOrEqualTo, a, b);
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static SymbolicEquation operator >(SymbolicExpression a, SymbolicExpression b) => new SymbolicEquation(ComparisonOperator.GreaterThan, a, b);
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static SymbolicEquation operator >=(SymbolicExpression a, SymbolicExpression b) => new SymbolicEquation(ComparisonOperator.GreaterThanOrEqualTo, a, b);
 	}
 }

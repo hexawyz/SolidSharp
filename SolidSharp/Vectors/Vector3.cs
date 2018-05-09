@@ -15,6 +15,12 @@ namespace SolidSharp.Vectors
 			Z = z;
 		}
 
+		public SymbolicExpression Length
+			=> SymbolicMath.Sqrt(LengthSquared);
+
+		public SymbolicExpression LengthSquared
+			=> Dot(this, this);
+
 		public static SymbolicExpression Dot(in Vector3 a, in Vector3 b)
 			=> a.X * b.X + a.Y * b.Y + a.Z * b.Z;
 

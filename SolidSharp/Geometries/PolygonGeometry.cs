@@ -16,7 +16,7 @@ namespace SolidSharp.Geometries
 			Points = points;
 		}
 
-		public override SymbolicEquationSystem GetInteriorEquation(SymbolicExpression x, SymbolicExpression y)
+		public override SymbolicEquationSystem GetInteriorEquation(Vector2 v)
 		{
 			throw new NotImplementedException();
 		}

@@ -1,10 +1,11 @@
 ﻿using SolidSharp.Expressions;
+using SolidSharp.Vectors;
 
 namespace SolidSharp.Geometries
 {
 	public sealed class DiscGeometry : Geometry2
 	{
-		public override SymbolicEquationSystem GetInteriorEquation(SymbolicExpression x, SymbolicExpression y)
-			=> x * x + y * y <= 1;
+		public override SymbolicEquationSystem GetInteriorEquation(Vector2 v)
+			=> v.Length <= 1;
 	}
 }

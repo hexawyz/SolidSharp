@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 
 namespace SolidSharp.Expressions
 {
@@ -26,23 +27,38 @@ namespace SolidSharp.Expressions
 	/// such as <c>0 + (-0) + x - x</c>)
 	/// </para>
 	/// </remarks>
-	public abstract class SymbolicExpression : IExpression
+	public abstract class SymbolicExpression
+#if !DEBUG
+		: IExpression
+#endif
     {
 		private protected SymbolicExpression() { }
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static VariableExpression Variable() => new VariableExpression();
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static VariableExpression Variable(string name) => new VariableExpression(name);
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static SymbolicExpression Constant(sbyte value) => NumberExpression.Create(value);
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static SymbolicExpression Constant(byte value) => NumberExpression.Create(value);
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static SymbolicExpression Constant(short value) => NumberExpression.Create(value);
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static SymbolicExpression Constant(ushort value) => NumberExpression.Create(value);
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static SymbolicExpression Constant(int value) => NumberExpression.Create(value);
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static SymbolicExpression Constant(uint value) => NumberExpression.Create(value);
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static SymbolicExpression Constant(long value) => NumberExpression.Create(value);
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static SymbolicExpression Constant(ulong value) => NumberExpression.Create(value);
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static SymbolicExpression Constant(float value) => Constant((decimal)value); // Hoping that things will round nicely to decimal…
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static SymbolicExpression Constant(double value) => Constant((decimal)value); // Hoping that things will round nicely to decimal…
 
 		public static SymbolicExpression Constant(decimal value)
@@ -93,7 +109,9 @@ namespace SolidSharp.Expressions
 		public override bool Equals(object obj) => ReferenceEquals(this, obj);
 		public override int GetHashCode() => ((int)Kind).GetHashCode();
 
-		#region IExpression Helpers
+#region IExpression Helpers
+
+#if !DEBUG // This seems to make VS go crazy while debugging.
 
 		// NB: IExpression must be reimplemented in every class derived from SymbolicExpressions.
 
@@ -120,8 +138,9 @@ namespace SolidSharp.Expressions
 
 		SymbolicExpression IExpression.GetOperand() => throw new NotSupportedException();
 		ImmutableArray<SymbolicExpression> IExpression.GetOperands() => throw new NotImplementedException();
+#endif
 
-		#endregion
+#endregion
 		
 		public static SymbolicExpression operator +(SymbolicExpression e)
 			=> e;

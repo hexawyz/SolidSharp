@@ -120,5 +120,22 @@ namespace SolidSharp.Tests.Expressions
 		{
 			Assert.Equal(SymbolicExpression.Constant(pa) / SymbolicExpression.Constant(qa), SymbolicExpression.Constant(pb) / SymbolicExpression.Constant(qb));
 		}
+
+		[Fact]
+		public void SquareRootSquaredShouldNegate()
+		{
+			var t = SymbolicExpression.Variable("𝓉");
+
+			Assert.Same(t, SymbolicMath.Pow(SymbolicMath.Sqrt(t), 2));
+			Assert.Same(t, SymbolicMath.Sqrt(t) * SymbolicMath.Sqrt(t));
+		}
+
+		[Fact]
+		public void SquareRootOfSquareShouldBeAbsoluteValue()
+		{
+			var t = SymbolicExpression.Variable("𝓉");
+
+			Assert.Same(SymbolicMath.Abs(t), SymbolicMath.Sqrt(SymbolicMath.Pow(t, 2)));
+		}
 	}
 }

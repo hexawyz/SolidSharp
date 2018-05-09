@@ -1,4 +1,6 @@
-﻿namespace SolidSharp.Expressions
+﻿using System.Runtime.CompilerServices;
+
+namespace SolidSharp.Expressions
 {
 	public static class SymbolicMath
 	{
@@ -10,6 +12,10 @@
 		public static SymbolicExpression MinusOne => NumberExpression.MinusOne;
 
 		public static SymbolicExpression Half { get; } = NumberExpression.One / SymbolicExpression.Constant(2);
+
+		public static SymbolicExpression Abs(SymbolicExpression x)
+			=> ExpressionSimplifier.TrySimplifyAbs(x)
+			?? new UnaryOperationExpression(UnaryOperator.Abs, x);
 
 		public static SymbolicExpression Pow(SymbolicExpression x, SymbolicExpression y)
 			=> ExpressionSimplifier.TrySimplifyPower(x, y)
@@ -24,9 +30,11 @@
 		public static SymbolicExpression Ln(SymbolicExpression x)
 			=> new UnaryOperationExpression(UnaryOperator.Ln, x);
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static SymbolicExpression Exp(SymbolicExpression x)
 			=> Pow(E, x);
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static SymbolicExpression Sqrt(SymbolicExpression x)
 			=> Pow(x, Half);
     }

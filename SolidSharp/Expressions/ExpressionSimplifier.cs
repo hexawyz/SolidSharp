@@ -218,7 +218,7 @@ namespace SolidSharp.Expressions
 				throw new DivideByZeroException();
 			}
 
-			if (b.Equals(NumberExpression.One))
+			if (b.Equals(SymbolicMath.One))
 			{
 				return a;
 			}
@@ -304,6 +304,25 @@ namespace SolidSharp.Expressions
 				{
 					return a;
 				}
+			}
+
+			if (a.IsPower())
+			{
+				var op1 = (BinaryOperationExpression)a;
+
+				return SymbolicMath.Pow(op1.FirstOperand, op1.SecondOperand * b);
+			}
+
+			return null;
+		}
+
+		public static SymbolicExpression TrySimplifyAbs(SymbolicExpression x)
+		{
+			if (x.IsNumber())
+			{
+				return x.IsNegativeNumber() ?
+					-x :
+					x;
 			}
 
 			return null;

@@ -26,6 +26,12 @@ namespace SolidSharp.Expressions
 		public static bool IsNumber(this SymbolicExpression e)
 			=> ((IExpression)e).IsNumber;
 
+		public static bool IsPositiveNumber(this SymbolicExpression e)
+			=> ((IExpression)e).IsPositiveNumber;
+
+		public static bool IsNegativeNumber(this SymbolicExpression e)
+			=> ((IExpression)e).IsNegativeNumber;
+
 		public static bool IsZero(this SymbolicExpression e)
 			=> ReferenceEquals(e, NumberExpression.Zero); // This will work because we're making sure that Zero is a singleton.
 

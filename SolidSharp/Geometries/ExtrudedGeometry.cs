@@ -1,4 +1,5 @@
 ﻿using SolidSharp.Expressions;
+using SolidSharp.Vectors;
 
 namespace SolidSharp.Geometries
 {
@@ -13,7 +14,7 @@ namespace SolidSharp.Geometries
 			Direction = direction;
 		}
 
-		public override SymbolicEquationSystem GetInteriorEquation(SymbolicExpression x, SymbolicExpression y, SymbolicExpression z)
+		public override SymbolicEquationSystem GetInteriorEquation(Vector3 v)
 			=> null;
 	}
 }

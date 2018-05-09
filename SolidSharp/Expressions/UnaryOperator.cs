@@ -7,11 +7,13 @@
 
 		// Mathematical functions which are unary functions.
 
-		Sin = 128,
-		Cos = 129,
-		Tan = 130,
+		Abs = 128,
 
-		Ln = 131,
+		Sin = 129,
+		Cos = 130,
+		Tan = 131,
+
+		Ln = 132,
     }
 
 	public static class UnaryOperatorExtensions

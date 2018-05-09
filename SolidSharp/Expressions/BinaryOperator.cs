@@ -7,5 +7,6 @@
 		Multiplication,
 		Division,
 		Power,
+		Root,
     }
 }

@@ -14,7 +14,7 @@ namespace SolidSharp.Expressions
 			}
 			else if (e.IsNumber())
 			{
-				return SymbolicExpression.Constant(-((NumberExpression)e).Value);
+				return SymbolicExpression.Constant(-e.GetValue());
 			}
 			else if (e.IsSubtraction())
 			{
@@ -38,7 +38,7 @@ namespace SolidSharp.Expressions
 				}
 				else if (a.IsNumber()) // x + y => eval(x + y)
 				{
-					return ((NumberExpression)a).Value + ((NumberExpression)b).Value;
+					return checked(a.GetValue() + b.GetValue());
 				}
 			}
 
@@ -95,7 +95,7 @@ namespace SolidSharp.Expressions
 				}
 				else if (a.IsNumber()) // x - y => eval(x - y)
 				{
-					return ((NumberExpression)a).Value - ((NumberExpression)b).Value;
+					return checked(a.GetValue() - b.GetValue());
 				}
 			}
 
@@ -142,7 +142,7 @@ namespace SolidSharp.Expressions
 				}
 				else if (a.IsNumber()) // x * y => eval(x * y)
 				{
-					return ((NumberExpression)a).Value * ((NumberExpression)b).Value;
+					return checked(a.GetValue() * b.GetValue());
 				}
 			}
 
@@ -229,8 +229,8 @@ namespace SolidSharp.Expressions
 
 				if (a.IsNumber()) // x / y => eval(x / y)
 				{
-					long v1 = ((NumberExpression)a).Value;
-					long v2 = ((NumberExpression)b).Value;
+					long v1 = a.GetValue();
+					long v2 = b.GetValue();
 
 					if (v1 == v2) return NumberExpression.One; // x / x => 1
 
@@ -289,9 +289,9 @@ namespace SolidSharp.Expressions
 		{
 			if (b.IsNumber())
 			{
-				var nb = (NumberExpression)b;
+				var nb = b.GetValue();
 
-				if (nb.Value == 0) // x⁰ => 1
+				if (nb == 0) // x⁰ => 1
 				{
 					// NB: 0⁰ is supposed to be undefined in the general case.
 					// Only simplify the expression if we can guarantee that x is non-zero.
@@ -300,13 +300,28 @@ namespace SolidSharp.Expressions
 						return 1;
 					}
 				}
-				else if (nb.Value == 1) // x¹ => x
+				else if (nb == 1) // x¹ => x
 				{
 					return a;
 				}
+				
+				if (a.IsRoot())
+				{
+					var op1 = (BinaryOperationExpression)a;
+
+					if (op1.SecondOperand.IsNumber())
+					{
+						var na = op1.SecondOperand.GetValue();
+
+						if (na == nb)
+						{
+							return op1.FirstOperand;
+						}
+					}
+				}
 			}
 
-			if (a.IsPower())
+			if (a.IsPower()) // (xⁿ⁰)ⁿ¹ => xⁿ⁰ⁿ¹
 			{
 				var op1 = (BinaryOperationExpression)a;
 
@@ -316,13 +331,66 @@ namespace SolidSharp.Expressions
 			return null;
 		}
 
-		public static SymbolicExpression TrySimplifyAbs(SymbolicExpression x)
+		public static SymbolicExpression TrySimplifyRoot(SymbolicExpression a, SymbolicExpression b)
 		{
-			if (x.IsNumber())
+			if (b.IsNumber())
 			{
-				return x.IsNegativeNumber() ?
-					-x :
-					x;
+				var nb = b.GetValue();
+
+				if (nb == 1) // x¹ => x
+				{
+					return a;
+				}
+				else if (a.IsPower())
+				{
+					var op1 = (BinaryOperationExpression)a;
+
+					if (op1.SecondOperand.IsNumber())
+					{
+						var na = op1.SecondOperand.GetValue();
+
+						if (na == nb)
+						{
+							if ((na & 1) != 0) // if y is odd: (x^y)^(1/y) => x
+							{
+								return op1.FirstOperand;
+							}
+							else // if y is even: (x^y)^(1/y) => |x|
+							{
+								return SymbolicMath.Abs(op1.FirstOperand);
+							}
+						}
+					}
+				}
+			}
+
+			if (a.IsRoot()) // (xⁿ⁰)ⁿ¹ => xⁿ⁰ⁿ¹
+			{
+				var op1 = (BinaryOperationExpression)a;
+
+				return SymbolicMath.Root(op1.FirstOperand, op1.SecondOperand * b);
+			}
+
+			return null;
+		}
+
+		public static SymbolicExpression TrySimplifyAbs(SymbolicExpression e)
+		{
+			if (e.IsNumber())
+			{
+				return e.IsNegativeNumber() ?
+					-e :
+					e;
+			}
+
+			if (e.IsPower()) // |x²ⁿ| => x²ⁿ
+			{
+				var op = (BinaryOperationExpression)e;
+
+				if (op.SecondOperand.IsEvenNumber())
+				{
+					return e;
+				}
 			}
 
 			return null;

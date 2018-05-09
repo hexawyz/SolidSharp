@@ -11,7 +11,7 @@ namespace SolidSharp.Expressions
 		public static SymbolicExpression One => NumberExpression.One;
 		public static SymbolicExpression MinusOne => NumberExpression.MinusOne;
 
-		public static SymbolicExpression Half { get; } = NumberExpression.One / SymbolicExpression.Constant(2);
+		private static readonly SymbolicExpression Two = SymbolicExpression.Constant(2);
 
 		public static SymbolicExpression Abs(SymbolicExpression x)
 			=> ExpressionSimplifier.TrySimplifyAbs(x)
@@ -20,6 +20,10 @@ namespace SolidSharp.Expressions
 		public static SymbolicExpression Pow(SymbolicExpression x, SymbolicExpression y)
 			=> ExpressionSimplifier.TrySimplifyPower(x, y)
 			?? new BinaryOperationExpression(BinaryOperator.Power, x, y);
+
+		public static SymbolicExpression Root(SymbolicExpression x, SymbolicExpression y)
+			=> ExpressionSimplifier.TrySimplifyRoot(x, y)
+			?? new BinaryOperationExpression(BinaryOperator.Root, x, y);
 
 		public static SymbolicExpression Sin(SymbolicExpression x)
 			=> new UnaryOperationExpression(UnaryOperator.Sin, x);
@@ -36,6 +40,6 @@ namespace SolidSharp.Expressions
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static SymbolicExpression Sqrt(SymbolicExpression x)
-			=> Pow(x, Half);
+			=> Root(x, Two);
     }
 }

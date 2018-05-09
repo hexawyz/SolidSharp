@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 
 namespace SolidSharp.Expressions
@@ -70,6 +71,9 @@ namespace SolidSharp.Expressions
 		
 		private NumberExpression(long value) => Value = value;
 
+		public override string ToString()
+			=> Value.ToString(CultureInfo.InvariantCulture);
+
 		public bool Equals(NumberExpression other)
 			=> ReferenceEquals(this, other)
 			|| !(other is null) && Value == other.Value;
@@ -80,6 +84,7 @@ namespace SolidSharp.Expressions
 
 		#region IExpression Helpers
 
+		bool IExpression.IsOperation => false;
 		bool IExpression.IsUnaryOperation => false;
 		bool IExpression.IsBinaryOperation => false;
 		bool IExpression.IsVariadicOperation => false;
@@ -90,13 +95,17 @@ namespace SolidSharp.Expressions
 		bool IExpression.IsSubtraction => false;
 		bool IExpression.IsMultiplication => false;
 		bool IExpression.IsDivision => false;
+
 		bool IExpression.IsPower => false;
+		bool IExpression.IsRoot => false;
 
 		bool IExpression.IsMathematicalFunction => false;
 
 		bool IExpression.IsNumber => true;
-		bool IExpression.IsPositiveNumber => Value > 0;
+		bool IExpression.IsPositiveNumber => Value >= 0; // Consider 0 as a positive number for simplicity
 		bool IExpression.IsNegativeNumber => Value < 0;
+		bool IExpression.IsOddNumber => (Value & 1) != 0;
+		bool IExpression.IsEvenNumber => (Value & 1) == 0;
 
 		bool IExpression.IsVariable => false;
 		bool IExpression.IsConstant => false;

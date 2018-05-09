@@ -6,6 +6,6 @@ namespace SolidSharp.Geometries
 	public sealed class DiscGeometry : Geometry2
 	{
 		public override SymbolicEquationSystem GetInteriorEquation(Vector2 v)
-			=> v.Length <= 1;
+			=> v.LengthSquared <= 1;
 	}
 }

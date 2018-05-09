@@ -1,10 +1,21 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace SolidSharp.Expressions
 {
 	public sealed class UnaryOperationExpression : SymbolicExpression , IEquatable<UnaryOperationExpression>, IExpression
 	{
+		private static readonly Dictionary<UnaryOperator, string> OperatorToString = new Dictionary<UnaryOperator, string>
+		{
+			{ UnaryOperator.Plus, "+" },
+			{ UnaryOperator.Minus, "-" },
+			{ UnaryOperator.Sin, "sin" },
+			{ UnaryOperator.Cos, "cos" },
+			{ UnaryOperator.Tan, "tan" },
+			{ UnaryOperator.Ln, "ln" },
+		};
+
 		public UnaryOperator Operator { get; set; }
 
 		public SymbolicExpression Operand { get; set; }
@@ -15,6 +26,21 @@ namespace SolidSharp.Expressions
 		{
 			Operator = @operator;
 			Operand = operand ?? throw new ArgumentNullException(nameof(operand));
+		}
+
+		public override string ToString()
+		{
+			if (Operator == UnaryOperator.Abs)
+			{
+				return "|" + Operand + "|";
+			}
+
+			bool parenthesesRequired = Operator.IsFunction() || Operand.IsOperation();
+			string @operator = OperatorToString[Operator];
+
+			return parenthesesRequired ?
+				@operator + "(" + Operand.ToString() + ")" :
+				@operator + Operand.ToString();
 		}
 
 		public bool Equals(UnaryOperationExpression other)
@@ -35,6 +61,7 @@ namespace SolidSharp.Expressions
 		
 		#region IExpression Helpers
 
+		bool IExpression.IsOperation => false;
 		bool IExpression.IsUnaryOperation => true;
 		bool IExpression.IsBinaryOperation => false;
 		bool IExpression.IsVariadicOperation => false;
@@ -45,13 +72,17 @@ namespace SolidSharp.Expressions
 		bool IExpression.IsSubtraction => false;
 		bool IExpression.IsMultiplication => false;
 		bool IExpression.IsDivision => false;
+
 		bool IExpression.IsPower => false;
+		bool IExpression.IsRoot => false;
 
 		bool IExpression.IsMathematicalFunction => Operator.IsFunction();
 
 		bool IExpression.IsNumber => false;
 		bool IExpression.IsPositiveNumber => false;
 		bool IExpression.IsNegativeNumber => false;
+		bool IExpression.IsOddNumber => false;
+		bool IExpression.IsEvenNumber => false;
 
 		bool IExpression.IsVariable => false;
 		bool IExpression.IsConstant => false;

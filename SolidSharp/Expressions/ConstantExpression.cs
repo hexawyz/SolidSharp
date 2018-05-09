@@ -23,6 +23,8 @@ namespace SolidSharp.Expressions
 
 		private ConstantExpression(string name, double value) => (Name, Value) = (name, value);
 
+		public override string ToString() => Name;
+
 		public override bool Equals(object obj) => Equals(obj as ConstantExpression);
 
 		public bool Equals(ConstantExpression other) => ReferenceEquals(this, other) || !(other is null) && Name == other.Name;
@@ -31,6 +33,7 @@ namespace SolidSharp.Expressions
 
 		#region IExpression Helpers
 
+		bool IExpression.IsOperation => false;
 		bool IExpression.IsUnaryOperation => false;
 		bool IExpression.IsBinaryOperation => false;
 		bool IExpression.IsVariadicOperation => false;
@@ -41,13 +44,17 @@ namespace SolidSharp.Expressions
 		bool IExpression.IsSubtraction => false;
 		bool IExpression.IsMultiplication => false;
 		bool IExpression.IsDivision => false;
+
 		bool IExpression.IsPower => false;
+		bool IExpression.IsRoot => false;
 
 		bool IExpression.IsMathematicalFunction => false;
 
 		bool IExpression.IsNumber => false;
 		bool IExpression.IsPositiveNumber => false;
 		bool IExpression.IsNegativeNumber => false;
+		bool IExpression.IsOddNumber => false;
+		bool IExpression.IsEvenNumber => false;
 
 		bool IExpression.IsVariable => false;
 		bool IExpression.IsConstant => true;

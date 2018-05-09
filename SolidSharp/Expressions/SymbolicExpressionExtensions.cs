@@ -1,10 +1,21 @@
-﻿using System;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 
 namespace SolidSharp.Expressions
 {
 	public static class SymbolicExpressionExtensions
 	{
+		public static bool IsOperation(this SymbolicExpression e)
+			=> ((IExpression)e).IsOperation;
+
+		public static bool IsUnaryOperation(this SymbolicExpression e)
+			=> ((IExpression)e).IsUnaryOperation;
+
+		public static bool IsBinaryOperation(this SymbolicExpression e)
+			=> ((IExpression)e).IsBinaryOperation;
+
+		public static bool IsVariadicOperation(this SymbolicExpression e)
+			=> ((IExpression)e).IsVariadicOperation;
+
 		public static bool IsNegation(this SymbolicExpression e)
 			=> ((IExpression)e).IsNegation;
 
@@ -23,6 +34,9 @@ namespace SolidSharp.Expressions
 		public static bool IsPower(this SymbolicExpression e)
 			=> ((IExpression)e).IsPower;
 
+		public static bool IsRoot(this SymbolicExpression e)
+			=> ((IExpression)e).IsRoot;
+
 		public static bool IsNumber(this SymbolicExpression e)
 			=> ((IExpression)e).IsNumber;
 
@@ -32,6 +46,12 @@ namespace SolidSharp.Expressions
 		public static bool IsNegativeNumber(this SymbolicExpression e)
 			=> ((IExpression)e).IsNegativeNumber;
 
+		public static bool IsOddNumber(this SymbolicExpression e)
+			=> ((IExpression)e).IsOddNumber;
+
+		public static bool IsEvenNumber(this SymbolicExpression e)
+			=> ((IExpression)e).IsEvenNumber;
+
 		public static bool IsZero(this SymbolicExpression e)
 			=> ReferenceEquals(e, NumberExpression.Zero); // This will work because we're making sure that Zero is a singleton.
 
@@ -40,6 +60,13 @@ namespace SolidSharp.Expressions
 
 		public static bool IsMinusOne(this SymbolicExpression e)
 			=> ReferenceEquals(e, NumberExpression.MinusOne); // This will work because we're making sure that MinusOne is a singleton.
+
+		/// <summary>Gets the numeric value of the expression.</summary>
+		/// <remarks>This only worlks for numeric expressions.</remarks>
+		/// <returns>The value of the expression.</returns>
+		/// <exception cref="InvalidCastException">Expression is not a <see cref="NumberExpression"/>.</exception>
+		public static long GetValue(this SymbolicExpression e)
+			=> ((NumberExpression)e).Value;
 
 		/// <summary>Gets the operand of the expression.</summary>
 		/// <remarks>

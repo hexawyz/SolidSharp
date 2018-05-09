@@ -135,7 +135,7 @@ namespace SolidSharp.Tests.Expressions
 		{
 			var t = SymbolicExpression.Variable("𝓉");
 
-			Assert.Same(SymbolicMath.Abs(t), SymbolicMath.Sqrt(SymbolicMath.Pow(t, 2)));
+			Assert.Equal(SymbolicMath.Abs(t), SymbolicMath.Sqrt(SymbolicMath.Pow(t, 2)));
 		}
 	}
 }

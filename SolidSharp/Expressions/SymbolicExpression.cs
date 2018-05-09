@@ -33,9 +33,7 @@ namespace SolidSharp.Expressions
 #endif
     {
 		private protected SymbolicExpression() { }
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static VariableExpression Variable() => new VariableExpression();
+		
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static VariableExpression Variable(string name) => new VariableExpression(name);
 
@@ -109,7 +107,7 @@ namespace SolidSharp.Expressions
 		public override bool Equals(object obj) => ReferenceEquals(this, obj);
 		public override int GetHashCode() => ((int)Kind).GetHashCode();
 
-#region IExpression Helpers
+		#region IExpression Helpers
 
 #if !DEBUG // This seems to make VS go crazy while debugging.
 
@@ -125,13 +123,17 @@ namespace SolidSharp.Expressions
 		bool IExpression.IsSubtraction => throw new NotImplementedException();
 		bool IExpression.IsMultiplication => throw new NotImplementedException();
 		bool IExpression.IsDivision => throw new NotImplementedException();
+
 		bool IExpression.IsPower => throw new NotImplementedException();
+		bool IExpression.IsRoot => throw new NotImplementedException();
 
 		bool IExpression.IsMathematicalFunction => throw new NotImplementedException();
 
 		bool IExpression.IsNumber => throw new NotImplementedException();
 		bool IExpression.IsPositiveNumber => throw new NotImplementedException();
 		bool IExpression.IsNegativeNumber => throw new NotImplementedException();
+		bool IExpression.IsOddNumber => throw new NotImplementedException();
+		bool IExpression.IsEvenNumber => throw new NotImplementedException();
 
 		bool IExpression.IsVariable => throw new NotImplementedException();
 		bool IExpression.IsConstant => false;
@@ -140,8 +142,8 @@ namespace SolidSharp.Expressions
 		ImmutableArray<SymbolicExpression> IExpression.GetOperands() => throw new NotImplementedException();
 #endif
 
-#endregion
-		
+		#endregion
+
 		public static SymbolicExpression operator +(SymbolicExpression e)
 			=> e;
 

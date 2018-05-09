@@ -2,8 +2,12 @@
 
 namespace SolidSharp.Expressions
 {
+	/// <summary>A helper interface used to provide information about an expression without casting.</summary>
 	internal interface IExpression
-    {
+	{
+		/// <summary>Gets a value indicating if the expression represents any kind of operation.</summary>
+		bool IsOperation { get; }
+
 		/// <summary>Gets a value indicating if the expression represents a unary operation.</summary>
 		bool IsUnaryOperation { get; }
 		/// <summary>Gets a value indicating if the expression represents a binary operation.</summary>
@@ -22,18 +26,25 @@ namespace SolidSharp.Expressions
 		bool IsMultiplication { get; }
 		/// <summary>Gets a value indicating if the expression represents a division.</summary>
 		bool IsDivision { get; }
+
 		/// <summary>Gets a value indicating if the expression represents a power.</summary>
 		bool IsPower { get; }
+		/// <summary>Gets a value indicating if the expression represents a root.</summary>
+		bool IsRoot { get; }
 
 		/// <summary>Gets a value indicating if the expression represents a mathematical function.</summary>
 		bool IsMathematicalFunction { get; }
 
 		/// <summary>Gets a value indicating if the expression represents a number.</summary>
 		bool IsNumber { get; }
-		/// <summary>Gets a value indicating if the expression represents a positive integer number.</summary>
+		/// <summary>Gets a value indicating if the expression represents a positive number.</summary>
 		bool IsPositiveNumber { get; }
-		/// <summary>Gets a value indicating if the expression represents a negative integer number.</summary>
+		/// <summary>Gets a value indicating if the expression represents a negative number.</summary>
 		bool IsNegativeNumber { get; }
+		/// <summary>Gets a value indicating if the expression represents an odd number.</summary>
+		bool IsOddNumber { get; }
+		/// <summary>Gets a value indicating if the expression represents an even number.</summary>
+		bool IsEvenNumber { get; }
 
 		/// <summary>Gets a value indicating if the expression represents a variable.</summary>
 		bool IsVariable { get; }

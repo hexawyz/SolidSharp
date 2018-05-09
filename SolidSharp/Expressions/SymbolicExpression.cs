@@ -33,17 +33,31 @@ namespace SolidSharp.Expressions
 		public static VariableExpression Variable() => new VariableExpression();
 		public static VariableExpression Variable(string name) => new VariableExpression(name);
 
-		public static NumberExpression Constant(sbyte value) => value;
-		public static NumberExpression Constant(byte value) => value;
-		public static NumberExpression Constant(short value) => value;
-		public static NumberExpression Constant(ushort value) => value;
-		public static NumberExpression Constant(int value) => value;
-		public static NumberExpression Constant(uint value) => value;
-		public static NumberExpression Constant(long value) => value;
-		public static NumberExpression Constant(ulong value) => value;
-		public static NumberExpression Constant(float value) => value;
-		public static NumberExpression Constant(double value) => value;
-		public static NumberExpression Constant(decimal value) => value;
+		public static SymbolicExpression Constant(sbyte value) => NumberExpression.Create(value);
+		public static SymbolicExpression Constant(byte value) => NumberExpression.Create(value);
+		public static SymbolicExpression Constant(short value) => NumberExpression.Create(value);
+		public static SymbolicExpression Constant(ushort value) => NumberExpression.Create(value);
+		public static SymbolicExpression Constant(int value) => NumberExpression.Create(value);
+		public static SymbolicExpression Constant(uint value) => NumberExpression.Create(value);
+		public static SymbolicExpression Constant(long value) => NumberExpression.Create(value);
+		public static SymbolicExpression Constant(ulong value) => NumberExpression.Create(value);
+
+		public static SymbolicExpression Constant(float value) => Constant((decimal)value); // Hoping that things will round nicely to decimal…
+		public static SymbolicExpression Constant(double value) => Constant((decimal)value); // Hoping that things will round nicely to decimal…
+
+		public static SymbolicExpression Constant(decimal value)
+		{
+			if (value.IsInteger())
+			{
+				return Constant(checked((long)value));
+			}
+			else
+			{
+				(long numerator, byte power) = value.Decompose();
+
+				return Divide(numerator, SymbolicMath.Pow(10, power));
+			}
+		}
 
 		public static SymbolicExpression Negate(SymbolicExpression e)
 			=> ExpressionSimplifier.TrySimplifyNegation(e)
@@ -98,9 +112,8 @@ namespace SolidSharp.Expressions
 		bool IExpression.IsMathematicalFunction => throw new NotImplementedException();
 
 		bool IExpression.IsNumber => throw new NotImplementedException();
-		bool IExpression.IsInteger => throw new NotImplementedException();
-		bool IExpression.IsPositiveInteger => throw new NotImplementedException();
-		bool IExpression.IsNegativeInteger => throw new NotImplementedException();
+		bool IExpression.IsPositiveNumber => throw new NotImplementedException();
+		bool IExpression.IsNegativeNumber => throw new NotImplementedException();
 
 		bool IExpression.IsVariable => throw new NotImplementedException();
 		bool IExpression.IsConstant => false;
@@ -128,14 +141,18 @@ namespace SolidSharp.Expressions
 		public static SymbolicExpression operator /(SymbolicExpression a, SymbolicExpression b)
 			=> Divide(a, b);
 
-		public static implicit operator SymbolicExpression(int value) => (NumberExpression)value;
-		public static implicit operator SymbolicExpression(uint value) => (NumberExpression)value;
-		public static implicit operator SymbolicExpression(long value) => (NumberExpression)value;
-		public static implicit operator SymbolicExpression(ulong value) => (NumberExpression)value;
-		public static implicit operator SymbolicExpression(decimal value) => (NumberExpression)value;
+		public static implicit operator SymbolicExpression(sbyte value) => Constant(value);
+		public static implicit operator SymbolicExpression(byte value) => Constant(value);
+		public static implicit operator SymbolicExpression(short value) => Constant(value);
+		public static implicit operator SymbolicExpression(ushort value) => Constant(value);
+		public static implicit operator SymbolicExpression(int value) => Constant(value);
+		public static implicit operator SymbolicExpression(uint value) => Constant(value);
+		public static implicit operator SymbolicExpression(long value) => Constant(value);
+		public static implicit operator SymbolicExpression(ulong value) => Constant(value);
+		public static implicit operator SymbolicExpression(decimal value) => Constant(value);
 
-		public static implicit operator SymbolicExpression(float value) => (NumberExpression)value;
-		public static implicit operator SymbolicExpression(double value) => (NumberExpression)value;
+		public static implicit operator SymbolicExpression(float value) => Constant(value);
+		public static implicit operator SymbolicExpression(double value) => Constant(value);
 
 		public static SymbolicEquation operator ==(SymbolicExpression a, SymbolicExpression b) => new SymbolicEquation(ComparisonOperator.EqualTo, a, b);
 		public static SymbolicEquation operator !=(SymbolicExpression a, SymbolicExpression b) => new SymbolicEquation(ComparisonOperator.NotEqualTo, a, b);

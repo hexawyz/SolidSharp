@@ -225,16 +225,21 @@ namespace SolidSharp.Expressions
 
 			if (a.Kind == b.Kind) // Handle very trivial simplifications
 			{
-				// TODO: To optimize away the x/x case, we need to assert that x is not null… (Assertions are needed !)
+				// TODO: To optimize away x/x in the general case, we need to assert that x is not null… (Assertions are needed !)
 
 				if (a.IsNumber()) // x / y => eval(x / y)
 				{
-					// Optimize x/x easily for numbers…
-					if (a.Equals(b)) return NumberExpression.One;
+					long v1 = ((NumberExpression)a).Value;
+					long v2 = ((NumberExpression)b).Value;
 
-					// TODO: Only divide when the result is in ℤ
-					return null;
-					//return ((NumberExpression)a).Value / ((NumberExpression)b).Value;
+					if (v1 == v2) return NumberExpression.One; // x / x => 1
+
+					long gcd = checked((long)MathUtil.Gcd(v1, v2));
+
+					if (gcd > 1)
+					{
+						return SymbolicExpression.Constant(v1 / gcd) / SymbolicExpression.Constant(v2 / gcd);
+					}
 				}
 			}
 
@@ -286,21 +291,18 @@ namespace SolidSharp.Expressions
 			{
 				var nb = (NumberExpression)b;
 
-				if (nb.IsInteger)
+				if (nb.Value == 0) // x⁰ => 1
 				{
-					if (nb.Value == 0) // x⁰ => 1
+					// NB: 0⁰ is supposed to be undefined in the general case.
+					// Only simplify the expression if we can guarantee that x is non-zero.
+					if (a.IsNumber() && !a.IsZero())
 					{
-						// NB: 0⁰ is supposed to be undefined in the general case.
-						// Only simplify the expression if we can guarantee that x is non-zero.
-						if (a.IsNumber() && !a.IsZero())
-						{
-							return 1;
-						}
+						return 1;
 					}
-					else if (nb.Value == 1) // x¹ => x
-					{
-						return a;
-					}
+				}
+				else if (nb.Value == 1) // x¹ => x
+				{
+					return a;
 				}
 			}
 

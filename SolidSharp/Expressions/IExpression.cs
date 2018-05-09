@@ -30,12 +30,10 @@ namespace SolidSharp.Expressions
 
 		/// <summary>Gets a value indicating if the expression represents a number.</summary>
 		bool IsNumber { get; }
-		/// <summary>Gets a value indicating if the expression represents an integer number.</summary>
-		bool IsInteger { get; }
 		/// <summary>Gets a value indicating if the expression represents a positive integer number.</summary>
-		bool IsPositiveInteger { get; }
+		bool IsPositiveNumber { get; }
 		/// <summary>Gets a value indicating if the expression represents a negative integer number.</summary>
-		bool IsNegativeInteger { get; }
+		bool IsNegativeNumber { get; }
 
 		/// <summary>Gets a value indicating if the expression represents a variable.</summary>
 		bool IsVariable { get; }

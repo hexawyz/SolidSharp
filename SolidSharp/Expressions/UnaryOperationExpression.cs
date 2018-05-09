@@ -50,9 +50,8 @@ namespace SolidSharp.Expressions
 		bool IExpression.IsMathematicalFunction => Operator.IsFunction();
 
 		bool IExpression.IsNumber => false;
-		bool IExpression.IsInteger => false;
-		bool IExpression.IsPositiveInteger => false;
-		bool IExpression.IsNegativeInteger => false;
+		bool IExpression.IsPositiveNumber => false;
+		bool IExpression.IsNegativeNumber => false;
 
 		bool IExpression.IsVariable => false;
 		bool IExpression.IsConstant => false;

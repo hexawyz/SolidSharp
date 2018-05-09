@@ -5,6 +5,12 @@
 		public static ConstantExpression Pi => ConstantExpression.Pi;
 		public static ConstantExpression E => ConstantExpression.E;
 
+		public static SymbolicExpression Zero => NumberExpression.Zero;
+		public static SymbolicExpression One => NumberExpression.One;
+		public static SymbolicExpression MinusOne => NumberExpression.MinusOne;
+
+		public static SymbolicExpression Half { get; } = NumberExpression.One / SymbolicExpression.Constant(2);
+
 		public static SymbolicExpression Pow(SymbolicExpression x, SymbolicExpression y)
 			=> ExpressionSimplifier.TrySimplifyPower(x, y)
 			?? new BinaryOperationExpression(BinaryOperator.Power, x, y);
@@ -22,6 +28,6 @@
 			=> Pow(E, x);
 
 		public static SymbolicExpression Sqrt(SymbolicExpression x)
-			=> Pow(x, NumberExpression.Half);
+			=> Pow(x, Half);
     }
 }

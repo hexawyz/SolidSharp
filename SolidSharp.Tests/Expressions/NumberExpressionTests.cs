@@ -148,24 +148,24 @@ namespace SolidSharp.Tests.Expressions
 			Assert.Equal(value, NumberExpression.Create(value).Value);
 		}
 
-		[Theory]
-		[InlineData(0)]
-		[InlineData(1)]
-		[InlineData(2)]
-		[InlineData(3)]
-		[InlineData(127)]
-		[InlineData(128)]
-		[InlineData(777)]
-		[InlineData(12978)]
-		[InlineData(short.MaxValue)]
-		[InlineData(ushort.MaxValue)]
-		[InlineData(int.MaxValue)]
-		[InlineData(uint.MaxValue)]
-		[InlineData(long.MaxValue)]
-		[InlineData(ulong.MaxValue)]
-		public void UInt64ValuesShouldBeMappedProperly(ulong value)
-		{
-			Assert.Equal(value, NumberExpression.Create(value).Value);
-		}
+		//[Theory]
+		//[InlineData(0)]
+		//[InlineData(1)]
+		//[InlineData(2)]
+		//[InlineData(3)]
+		//[InlineData(127)]
+		//[InlineData(128)]
+		//[InlineData(777)]
+		//[InlineData(12978)]
+		//[InlineData(short.MaxValue)]
+		//[InlineData(ushort.MaxValue)]
+		//[InlineData(int.MaxValue)]
+		//[InlineData(uint.MaxValue)]
+		//[InlineData(long.MaxValue)]
+		//[InlineData(ulong.MaxValue)]
+		//public void UInt64ValuesShouldBeMappedProperly(ulong value)
+		//{
+		//	Assert.Equal(value, NumberExpression.Create(value).Value);
+		//}
 	}
 }

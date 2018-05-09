@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace SolidSharp.Expressions
 {
-	public sealed class VariableExpression : SymbolicExpression, IExpression
-    {
+	public sealed class VariableExpression : SymbolicExpression, IExpression, IEquatable<VariableExpression>
+	{
 		public string Name { get; }
 
 		public override ExpressionKind Kind => ExpressionKind.Variable;
@@ -14,14 +15,28 @@ namespace SolidSharp.Expressions
 
 		public override string ToString() => Name;
 
+		public override bool Equals(object obj) => Equals(obj as VariableExpression);
+
+		public bool Equals(VariableExpression other) => ReferenceEquals(this, other);
+
+		public override int GetHashCode()
+		{
+			var hashCode = 890389916;
+			hashCode = hashCode * -1521134295 + base.GetHashCode();
+			hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
+			return hashCode;
+		}
+
 		#region IExpression Helpers
 
 		bool IExpression.IsOperation => false;
 		bool IExpression.IsUnaryOperation => false;
 		bool IExpression.IsBinaryOperation => false;
 		bool IExpression.IsVariadicOperation => false;
+		bool IExpression.NeedsParentheses => false;
 
 		bool IExpression.IsNegation => false;
+		bool IExpression.IsAbsoluteValue => false;
 
 		bool IExpression.IsAddition => false;
 		bool IExpression.IsSubtraction => false;
@@ -42,6 +57,7 @@ namespace SolidSharp.Expressions
 		bool IExpression.IsVariable => true;
 		bool IExpression.IsConstant => false;
 
+		byte IExpression.GetPrecedence() => throw new NotSupportedException();
 		SymbolicExpression IExpression.GetOperand() => throw new NotSupportedException();
 		ImmutableArray<SymbolicExpression> IExpression.GetOperands() => throw new NotSupportedException();
 

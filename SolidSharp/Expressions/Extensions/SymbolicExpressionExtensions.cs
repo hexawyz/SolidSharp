@@ -1,6 +1,6 @@
 ﻿using System.Collections.Immutable;
 
-namespace SolidSharp.Expressions
+namespace SolidSharp.Expressions.Extensions
 {
 	public static class SymbolicExpressionExtensions
 	{
@@ -16,8 +16,14 @@ namespace SolidSharp.Expressions
 		public static bool IsVariadicOperation(this SymbolicExpression e)
 			=> ((IExpression)e).IsVariadicOperation;
 
+		public static bool NeedsParentheses(this SymbolicExpression e)
+			=> ((IExpression)e).NeedsParentheses;
+
 		public static bool IsNegation(this SymbolicExpression e)
 			=> ((IExpression)e).IsNegation;
+
+		public static bool IsAbsoluteValue(this SymbolicExpression e)
+			=> ((IExpression)e).IsAbsoluteValue;
 
 		public static bool IsAddition(this SymbolicExpression e)
 			=> ((IExpression)e).IsAddition;
@@ -60,6 +66,12 @@ namespace SolidSharp.Expressions
 
 		public static bool IsMinusOne(this SymbolicExpression e)
 			=> ReferenceEquals(e, NumberExpression.MinusOne); // This will work because we're making sure that MinusOne is a singleton.
+
+		/// <summary>Gets the precedence of the operation.</summary>
+		/// <returns>A value indicating the priority of the operation, the lower the highest.</returns>
+		/// <exception cref="NotSupportedException">This expression is not an operation.</exception>
+		public static byte GetPrecedence(this SymbolicExpression e)
+			=> ((IExpression)e).GetPrecedence();
 
 		/// <summary>Gets the numeric value of the expression.</summary>
 		/// <remarks>This only worlks for numeric expressions.</remarks>

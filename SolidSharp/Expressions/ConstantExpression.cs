@@ -37,8 +37,10 @@ namespace SolidSharp.Expressions
 		bool IExpression.IsUnaryOperation => false;
 		bool IExpression.IsBinaryOperation => false;
 		bool IExpression.IsVariadicOperation => false;
+		bool IExpression.NeedsParentheses => false;
 
 		bool IExpression.IsNegation => false;
+		bool IExpression.IsAbsoluteValue => false;
 
 		bool IExpression.IsAddition => false;
 		bool IExpression.IsSubtraction => false;
@@ -59,6 +61,7 @@ namespace SolidSharp.Expressions
 		bool IExpression.IsVariable => false;
 		bool IExpression.IsConstant => true;
 
+		byte IExpression.GetPrecedence() => throw new NotSupportedException();
 		SymbolicExpression IExpression.GetOperand() => throw new NotSupportedException();
 		ImmutableArray<SymbolicExpression> IExpression.GetOperands() => throw new NotSupportedException();
 

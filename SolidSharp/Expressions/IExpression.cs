@@ -15,8 +15,13 @@ namespace SolidSharp.Expressions
 		/// <summary>Gets a value indicating if the expression represents a n-ary operation.</summary>
 		bool IsVariadicOperation { get; }
 
+		/// <summary>Gets a value indicating wether the operation requires parentheses for formatting.</summary>
+		bool NeedsParentheses { get; }
+
 		/// <summary>Gets a value indicating if the expression represents a negation.</summary>
 		bool IsNegation { get; }
+		/// <summary>Gets a value indicating if the expression represents an absolute value.</summary>
+		bool IsAbsoluteValue { get; }
 
 		/// <summary>Gets a value indicating if the expression represents an addition.</summary>
 		bool IsAddition { get; }
@@ -50,6 +55,11 @@ namespace SolidSharp.Expressions
 		bool IsVariable { get; }
 		/// <summary>Gets a value indicating if the expression represents a mathematic constant.</summary>
 		bool IsConstant { get; }
+
+		/// <summary>Gets the precedence of the operation.</summary>
+		/// <returns>A value indicating the priority of the operation, the lower the highest.</returns>
+		/// <exception cref="NotSupportedException">This expression is not an operation.</exception>
+		byte GetPrecedence();
 
 		/// <summary>Gets the operand of the expression.</summary>
 		/// <remarks>

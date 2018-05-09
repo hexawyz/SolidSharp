@@ -4,5 +4,5 @@
     {
 		Addition = 0,
 		Multiplication = 1,
-    }
+	}
 }

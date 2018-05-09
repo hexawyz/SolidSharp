@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SolidSharp.Expressions.Extensions;
+using System;
 using System.Collections.Immutable;
 
 namespace SolidSharp.Expressions
@@ -304,8 +305,11 @@ namespace SolidSharp.Expressions
 				{
 					return a;
 				}
-				
-				if (a.IsRoot())
+				else if (a.IsAbsoluteValue() && (nb & 1) == 0) // |x|²ⁿ => x²ⁿ
+				{
+					return SymbolicMath.Pow(a.GetOperand(), b);
+				}
+				else if (a.IsRoot())
 				{
 					var op1 = (BinaryOperationExpression)a;
 

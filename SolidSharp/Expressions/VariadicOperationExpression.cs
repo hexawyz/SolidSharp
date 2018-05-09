@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SolidSharp.Expressions.Extensions;
+using System;
 using System.Collections.Immutable;
 
 namespace SolidSharp.Expressions
@@ -28,8 +29,10 @@ namespace SolidSharp.Expressions
 		bool IExpression.IsUnaryOperation => false;
 		bool IExpression.IsBinaryOperation => false;
 		bool IExpression.IsVariadicOperation => true;
+		bool IExpression.NeedsParentheses => true;
 
 		bool IExpression.IsNegation => false;
+		bool IExpression.IsAbsoluteValue => false;
 
 		bool IExpression.IsAddition => Operator == VariadicOperator.Addition;
 		bool IExpression.IsSubtraction => false;
@@ -50,6 +53,7 @@ namespace SolidSharp.Expressions
 		bool IExpression.IsVariable => false;
 		bool IExpression.IsConstant => false;
 
+		byte IExpression.GetPrecedence() => Operator.GetPrecedence();
 		SymbolicExpression IExpression.GetOperand() => throw new NotSupportedException();
 		ImmutableArray<SymbolicExpression> IExpression.GetOperands() => Operands;
 

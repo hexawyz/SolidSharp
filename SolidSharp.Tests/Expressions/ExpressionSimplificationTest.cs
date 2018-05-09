@@ -136,6 +136,41 @@ namespace SolidSharp.Tests.Expressions
 			var t = SymbolicExpression.Variable("𝓉");
 
 			Assert.Equal(SymbolicMath.Abs(t), SymbolicMath.Sqrt(SymbolicMath.Pow(t, 2)));
+			Assert.Equal(SymbolicMath.Abs(t), SymbolicMath.Sqrt(t * t));
+		}
+
+		[Theory]
+		[InlineData(2)]
+		[InlineData(3)]
+		[InlineData(4)]
+		[InlineData(5)]
+		[InlineData(666)]
+		[InlineData(2552)]
+		[InlineData(77777777)]
+		public void RootShouldBeNegatedByPower(long value)
+		{
+			var t = SymbolicExpression.Variable("𝓉");
+
+			Assert.Same(t, SymbolicMath.Pow(SymbolicMath.Root(t, value), value));
+		}
+
+		[Fact]
+		public void AbsoluteValueOfSquaredShouldGoAway()
+		{
+			var t = SymbolicExpression.Variable("𝓉");
+
+			Assert.NotEqual(t, SymbolicMath.Abs(t));
+			Assert.Equal(t * t, SymbolicMath.Abs(t * t));
+		}
+
+		[Fact]
+		public void AbsoluteValueSquaredShouldGoAway()
+		{
+			var t = SymbolicExpression.Variable("𝓉");
+
+			Assert.NotEqual(t, SymbolicMath.Abs(t));
+			Assert.Equal(t * t, SymbolicMath.Abs(t) * SymbolicMath.Abs(t));
+			Assert.Equal(t * t, SymbolicMath.Pow(SymbolicMath.Abs(t), 2));
 		}
 	}
 }

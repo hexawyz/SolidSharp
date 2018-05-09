@@ -27,10 +27,8 @@ namespace SolidSharp.Expressions
 	/// such as <c>0 + (-0) + x - x</c>)
 	/// </para>
 	/// </remarks>
+	// NB: All derived classes (need to) implement the IExpression interface for providing helper methods and properties
 	public abstract class SymbolicExpression
-#if !DEBUG
-		: IExpression
-#endif
     {
 		private protected SymbolicExpression() { }
 		
@@ -106,43 +104,6 @@ namespace SolidSharp.Expressions
 
 		public override bool Equals(object obj) => ReferenceEquals(this, obj);
 		public override int GetHashCode() => ((int)Kind).GetHashCode();
-
-		#region IExpression Helpers
-
-#if !DEBUG // This seems to make VS go crazy while debugging.
-
-		// NB: IExpression must be reimplemented in every class derived from SymbolicExpressions.
-
-		bool IExpression.IsUnaryOperation => false;
-		bool IExpression.IsBinaryOperation => false;
-		bool IExpression.IsVariadicOperation => false;
-
-		bool IExpression.IsNegation => false;
-
-		bool IExpression.IsAddition => throw new NotImplementedException();
-		bool IExpression.IsSubtraction => throw new NotImplementedException();
-		bool IExpression.IsMultiplication => throw new NotImplementedException();
-		bool IExpression.IsDivision => throw new NotImplementedException();
-
-		bool IExpression.IsPower => throw new NotImplementedException();
-		bool IExpression.IsRoot => throw new NotImplementedException();
-
-		bool IExpression.IsMathematicalFunction => throw new NotImplementedException();
-
-		bool IExpression.IsNumber => throw new NotImplementedException();
-		bool IExpression.IsPositiveNumber => throw new NotImplementedException();
-		bool IExpression.IsNegativeNumber => throw new NotImplementedException();
-		bool IExpression.IsOddNumber => throw new NotImplementedException();
-		bool IExpression.IsEvenNumber => throw new NotImplementedException();
-
-		bool IExpression.IsVariable => throw new NotImplementedException();
-		bool IExpression.IsConstant => false;
-
-		SymbolicExpression IExpression.GetOperand() => throw new NotSupportedException();
-		ImmutableArray<SymbolicExpression> IExpression.GetOperands() => throw new NotImplementedException();
-#endif
-
-		#endregion
 
 		public static SymbolicExpression operator +(SymbolicExpression e)
 			=> e;

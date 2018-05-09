@@ -15,10 +15,4 @@
 
 		Ln = 132,
     }
-
-	public static class UnaryOperatorExtensions
-	{
-		public static bool IsFunction(this UnaryOperator @operator)
-			=> (byte)@operator >= 128;
-	}
 }

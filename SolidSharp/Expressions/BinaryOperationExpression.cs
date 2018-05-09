@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SolidSharp.Expressions.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
@@ -32,9 +33,11 @@ namespace SolidSharp.Expressions
 
 		public override string ToString()
 		{
-			bool firstParenthesesRequired = FirstOperand.IsBinaryOperation() || FirstOperand.IsVariadicOperation();
-			bool secondParenthesesRequired = FirstOperand.IsBinaryOperation() || FirstOperand.IsVariadicOperation();
-			
+			byte currentOperatorPrecedence = Operator.GetPrecedence();
+
+			bool firstParenthesesRequired = FirstOperand.NeedsParentheses() && (!FirstOperand.IsOperation() || (FirstOperand.GetPrecedence() > currentOperatorPrecedence));
+			bool secondParenthesesRequired = SecondOperand.NeedsParentheses() && (!SecondOperand.IsOperation() || (SecondOperand.GetPrecedence() >= currentOperatorPrecedence));
+
 			if (Operator == BinaryOperator.Root)
 			{
 				if (SecondOperand.IsNumber())
@@ -55,7 +58,13 @@ namespace SolidSharp.Expressions
 
 			string @operator = OperatorToString[Operator];
 
-			return "(" + FirstOperand + ") " + @operator + " (" + SecondOperand + ")";
+			return firstParenthesesRequired ?
+					secondParenthesesRequired ?
+						"(" + FirstOperand.ToString() + ") " + @operator + " (" + SecondOperand.ToString() + ")" :
+						"(" + FirstOperand.ToString() + ") " + @operator + SecondOperand.ToString() :
+					secondParenthesesRequired ?
+						FirstOperand.ToString() + @operator + " (" + SecondOperand.ToString() + ")" :
+						FirstOperand.ToString() + @operator + SecondOperand.ToString();
 		}
 
 		public bool Equals(BinaryOperationExpression other)
@@ -81,8 +90,10 @@ namespace SolidSharp.Expressions
 		bool IExpression.IsUnaryOperation => true;
 		bool IExpression.IsBinaryOperation => false;
 		bool IExpression.IsVariadicOperation => false;
+		bool IExpression.NeedsParentheses => true;
 
 		bool IExpression.IsNegation => false;
+		bool IExpression.IsAbsoluteValue => false;
 
 		bool IExpression.IsAddition => Operator == BinaryOperator.Addition;
 		bool IExpression.IsSubtraction => Operator == BinaryOperator.Subtraction;
@@ -103,6 +114,7 @@ namespace SolidSharp.Expressions
 		bool IExpression.IsVariable => false;
 		bool IExpression.IsConstant => false;
 
+		byte IExpression.GetPrecedence() => Operator.GetPrecedence();
 		SymbolicExpression IExpression.GetOperand() => throw new NotSupportedException();
 		ImmutableArray<SymbolicExpression> IExpression.GetOperands() => ImmutableArray.Create(FirstOperand, SecondOperand);
 

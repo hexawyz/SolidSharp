@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SolidSharp.Expressions.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
@@ -35,7 +36,7 @@ namespace SolidSharp.Expressions
 				return "|" + Operand + "|";
 			}
 
-			bool parenthesesRequired = Operator.IsFunction() || Operand.IsOperation();
+			bool parenthesesRequired = Operator.IsFunction() || Operand.NeedsParentheses();
 			string @operator = OperatorToString[Operator];
 
 			return parenthesesRequired ?
@@ -48,7 +49,7 @@ namespace SolidSharp.Expressions
 			|| (!(other is null) && Operator == other.Operator && Operand.Equals(other.Operand));
 
 		public override bool Equals(object obj)
-			=> Equals(obj as BinaryOperationExpression);
+			=> Equals(obj as UnaryOperationExpression);
 
 		public override int GetHashCode()
 		{
@@ -65,8 +66,10 @@ namespace SolidSharp.Expressions
 		bool IExpression.IsUnaryOperation => true;
 		bool IExpression.IsBinaryOperation => false;
 		bool IExpression.IsVariadicOperation => false;
+		bool IExpression.NeedsParentheses => !Operator.IsFunction();
 
 		bool IExpression.IsNegation => Operator == UnaryOperator.Minus;
+		bool IExpression.IsAbsoluteValue => Operator == UnaryOperator.Abs;
 
 		bool IExpression.IsAddition => false;
 		bool IExpression.IsSubtraction => false;
@@ -87,6 +90,7 @@ namespace SolidSharp.Expressions
 		bool IExpression.IsVariable => false;
 		bool IExpression.IsConstant => false;
 
+		byte IExpression.GetPrecedence() => 0;
 		SymbolicExpression IExpression.GetOperand() => Operand;
 		ImmutableArray<SymbolicExpression> IExpression.GetOperands() => ImmutableArray.Create(Operand);
 

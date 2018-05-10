@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 
@@ -32,6 +33,22 @@ namespace SolidSharp.Expressions
     {
 		private protected SymbolicExpression() { }
 		
+		public SymbolicExpression SubstituteVariables(IDictionary<string, SymbolicExpression> substitutions)
+			=> SubstituteVariables(substitutions.ToImmutableDictionary());
+
+		public SymbolicExpression SubstituteVariables(ImmutableDictionary<string, SymbolicExpression> substitutions)
+			=> new VariableSubstitutionVisitor(substitutions).Visit(this);
+
+		/// <summary>Gets the kind of expression represented by this instance.</summary>
+		public abstract ExpressionKind Kind { get; }
+
+		protected internal abstract byte GetSortOrder();
+
+		protected internal abstract SymbolicExpression Accept(ExpressionVisitor visitor);
+
+		public override bool Equals(object obj) => ReferenceEquals(this, obj);
+		public override int GetHashCode() => ((int)Kind).GetHashCode();
+
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static VariableExpression Variable(string name) => new VariableExpression(name);
 
@@ -109,12 +126,6 @@ namespace SolidSharp.Expressions
 		public static SymbolicExpression Divide(SymbolicExpression a, SymbolicExpression b)
 			=> ExpressionSimplifier.TrySimplifyDivision(a, b)
 			?? new BinaryOperationExpression(BinaryOperator.Division, a, b);
-
-		/// <summary>Gets the kind of expression represented by this instance.</summary>
-		public abstract ExpressionKind Kind { get; }
-
-		public override bool Equals(object obj) => ReferenceEquals(this, obj);
-		public override int GetHashCode() => ((int)Kind).GetHashCode();
 
 		public static SymbolicExpression operator +(SymbolicExpression e)
 			=> e;

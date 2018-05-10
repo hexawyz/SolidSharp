@@ -22,13 +22,48 @@ namespace SolidSharp.Expressions
 
 		public SymbolicExpression SecondOperand { get; set; }
 
-		public override ExpressionKind Kind => ExpressionKind.BinaryOperation;
-
 		internal BinaryOperationExpression(BinaryOperator @operator, SymbolicExpression firstOperand, SymbolicExpression secondOperand)
 		{
 			Operator = @operator;
 			FirstOperand = firstOperand ?? throw new ArgumentNullException(nameof(firstOperand));
 			SecondOperand = secondOperand ?? throw new ArgumentNullException(nameof(secondOperand));
+		}
+
+		public override ExpressionKind Kind => ExpressionKind.BinaryOperation;
+
+		protected internal override byte GetSortOrder()
+		{
+			switch (Operator)
+			{
+				case BinaryOperator.Addition: return 4;
+				case BinaryOperator.Subtraction: return 5;
+				case BinaryOperator.Multiplication: return 6;
+				case BinaryOperator.Division: return 7;
+				case BinaryOperator.Root: return 8;
+				case BinaryOperator.Power: return 9;
+				default: throw new InvalidOperationException();
+			}
+		}
+
+		protected internal override SymbolicExpression Accept(ExpressionVisitor visitor) => visitor.VisitBinaryOperation(this);
+
+		public SymbolicExpression Update(SymbolicExpression firstOperand, SymbolicExpression secondOperand)
+		{
+			if (!ReferenceEquals(FirstOperand, firstOperand) || !ReferenceEquals(SecondOperand, secondOperand))
+			{
+				switch (Operator)
+				{
+					case BinaryOperator.Addition: return Add(firstOperand, secondOperand);
+					case BinaryOperator.Subtraction: return Subtract(firstOperand, secondOperand);
+					case BinaryOperator.Multiplication: return Multiply(firstOperand, secondOperand);
+					case BinaryOperator.Division: return Divide(firstOperand, secondOperand);
+					case BinaryOperator.Power: return SymbolicMath.Pow(firstOperand, secondOperand);
+					case BinaryOperator.Root: return SymbolicMath.Root(firstOperand, secondOperand);
+					default: throw new InvalidOperationException();
+				}
+			}
+
+			return this;
 		}
 
 		public override string ToString()
@@ -117,7 +152,7 @@ namespace SolidSharp.Expressions
 		byte IExpression.GetPrecedence() => Operator.GetPrecedence();
 		SymbolicExpression IExpression.GetOperand() => throw new NotSupportedException();
 		ImmutableArray<SymbolicExpression> IExpression.GetOperands() => ImmutableArray.Create(FirstOperand, SecondOperand);
-
+		
 		#endregion
 	}
 }

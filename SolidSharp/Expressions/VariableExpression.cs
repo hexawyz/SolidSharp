@@ -8,8 +8,6 @@ namespace SolidSharp.Expressions
 	{
 		public string Name { get; }
 
-		public override ExpressionKind Kind => ExpressionKind.Variable;
-
 		internal VariableExpression(string name)
 		{
 			if (name == null) throw new ArgumentNullException(nameof(name));
@@ -18,11 +16,19 @@ namespace SolidSharp.Expressions
 			Name = name;
 		}
 
+		public override ExpressionKind Kind => ExpressionKind.Variable;
+
+		protected internal override byte GetSortOrder() => 2;
+
+		protected internal override SymbolicExpression Accept(ExpressionVisitor visitor) => visitor.VisitVariable(this);
+
 		public override string ToString() => Name;
 
 		public override bool Equals(object obj) => Equals(obj as VariableExpression);
 
-		public bool Equals(VariableExpression other) => ReferenceEquals(this, other);
+		public bool Equals(VariableExpression other)
+			=> ReferenceEquals(this, other)
+			|| !(other is null) && Name == other.Name;
 
 		public override int GetHashCode()
 		{

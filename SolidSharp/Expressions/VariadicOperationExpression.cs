@@ -19,6 +19,33 @@ namespace SolidSharp.Expressions
 
 		public override ExpressionKind Kind => ExpressionKind.CommutativeOperation;
 
+		protected internal override byte GetSortOrder()
+		{
+			switch (Operator)
+			{
+				case VariadicOperator.Addition: return 4;
+				case VariadicOperator.Multiplication: return 6;
+				default: throw new InvalidOperationException();
+			}
+		}
+
+		protected internal override SymbolicExpression Accept(ExpressionVisitor visitor) => visitor.VisitVariadicOperation(this);
+
+		public SymbolicExpression Update(ImmutableArray<SymbolicExpression> operands)
+		{
+			if (Operands != operands)
+			{
+				switch (Operator)
+				{
+					case VariadicOperator.Addition: return Add(operands);
+					case VariadicOperator.Multiplication: return Multiply(operands);
+					default: throw new InvalidOperationException();
+				}
+			}
+
+			return this;
+		}
+
 		public bool Equals(VariadicOperationExpression other)
 			=> ReferenceEquals(this, other)
 			|| !(other is null) && Operator == other.Operator && StructuralEqualityComparer.Equals(Operands, other.Operands);

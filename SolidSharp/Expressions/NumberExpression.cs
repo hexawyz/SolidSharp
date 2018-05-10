@@ -67,9 +67,13 @@ namespace SolidSharp.Expressions
 
 		public long Value { get; }
 
-		public override ExpressionKind Kind => ExpressionKind.Number;
-		
 		private NumberExpression(long value) => Value = value;
+
+		public override ExpressionKind Kind => ExpressionKind.Number;
+
+		protected internal override byte GetSortOrder() => 0;
+
+		protected internal override SymbolicExpression Accept(ExpressionVisitor visitor) => visitor.VisitNumber(this);
 
 		public override string ToString()
 			=> Value.ToString(CultureInfo.InvariantCulture);

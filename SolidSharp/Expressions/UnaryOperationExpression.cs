@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 
 namespace SolidSharp.Expressions
 {
-	public sealed class UnaryOperationExpression : SymbolicExpression , IEquatable<UnaryOperationExpression>, IExpression
+	public sealed class UnaryOperationExpression : SymbolicExpression, IEquatable<UnaryOperationExpression>, IExpression
 	{
 		private static readonly Dictionary<UnaryOperator, string> OperatorToString = new Dictionary<UnaryOperator, string>
 		{
@@ -21,12 +21,36 @@ namespace SolidSharp.Expressions
 
 		public SymbolicExpression Operand { get; set; }
 
-		public override ExpressionKind Kind => ExpressionKind.UnaryOperation;
-
 		internal UnaryOperationExpression(UnaryOperator @operator, SymbolicExpression operand)
 		{
 			Operator = @operator;
 			Operand = operand ?? throw new ArgumentNullException(nameof(operand));
+		}
+
+		public override ExpressionKind Kind => ExpressionKind.UnaryOperation;
+
+		protected internal override byte GetSortOrder() => 3;
+
+		protected internal override SymbolicExpression Accept(ExpressionVisitor visitor) => visitor.VisitUnaryOperation(this);
+
+		public SymbolicExpression Update(SymbolicExpression operand)
+		{
+			if (!ReferenceEquals(Operand, operand))
+			{
+				switch (Operator)
+				{
+					case UnaryOperator.Plus: return operand;
+					case UnaryOperator.Minus: return Negate(operand);
+					case UnaryOperator.Abs: return SymbolicMath.Abs(operand);
+					case UnaryOperator.Sin: return SymbolicMath.Sin(operand);
+					case UnaryOperator.Cos: return SymbolicMath.Cos(operand);
+					case UnaryOperator.Tan: return SymbolicMath.Tan(operand);
+					case UnaryOperator.Ln: return SymbolicMath.Ln(operand);
+					default: throw new InvalidOperationException();
+				}
+			}
+
+			return this;
 		}
 
 		public override string ToString()

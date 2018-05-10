@@ -7,21 +7,25 @@ namespace SolidSharp.Expressions
 	public sealed class ConstantExpression : SymbolicExpression, IEquatable<ConstantExpression>, IExpression
     {
 		/// <summary>Represents the mathematical constant <c>π</c>.</summary>
-		public static ConstantExpression Pi = new ConstantExpression("π", Math.PI);
+		public static ConstantExpression Pi = new ConstantExpression("π", 3.1415926535897932384626433833m);
 
 		/// <summary>Represents the mathematical constant <c>𝑒</c>.</summary>
-		public static ConstantExpression E = new ConstantExpression("𝑒", Math.E);
+		public static ConstantExpression E = new ConstantExpression("𝑒", 2.7182818284590452353602874714m);
 
 		/// <summary>Gets the name of this constant.</summary>
 		public string Name { get; }
 
 		/// <summary>Gets the value of this constant.</summary>
 		/// <remarks>That value can be used when using numeric evaluation of the value of an expression.</remarks>
-		public double Value { get; }
+		public decimal Value { get; }
+
+		private ConstantExpression(string name, decimal value) => (Name, Value) = (name, value);
 
 		public override ExpressionKind Kind => ExpressionKind.Constant;
 
-		private ConstantExpression(string name, double value) => (Name, Value) = (name, value);
+		protected internal override byte GetSortOrder() => 1;
+
+		protected internal override SymbolicExpression Accept(ExpressionVisitor visitor) => visitor.VisitConstant(this);
 
 		public override string ToString() => Name;
 

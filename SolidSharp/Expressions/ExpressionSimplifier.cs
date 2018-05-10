@@ -1,6 +1,9 @@
 ﻿using SolidSharp.Expressions.Extensions;
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using static SolidSharp.Expressions.SymbolicMath;
 
 namespace SolidSharp.Expressions
 {
@@ -15,7 +18,7 @@ namespace SolidSharp.Expressions
 			}
 			else if (e.IsNumber())
 			{
-				return SymbolicExpression.Constant(-e.GetValue());
+				return N(checked(-e.GetValue()));
 			}
 			else if (e.IsSubtraction())
 			{
@@ -71,6 +74,26 @@ namespace SolidSharp.Expressions
 				return SymbolicExpression.Add(b.GetOperands().Insert(0, a));
 			}
 
+			if (a.IsSubtraction() && b.IsSubtraction()) // x - y + (z - w) => x + z - (y + w)
+			{
+				var op1 = (BinaryOperationExpression)a;
+				var op2 = (BinaryOperationExpression)b;
+
+				return op1.FirstOperand + op2.FirstOperand - (op1.SecondOperand + op2.SecondOperand);
+			}
+			else if (a.IsSubtraction()) // x - y + z => x + z - y
+			{
+				var op1 = (BinaryOperationExpression)a;
+
+				return op1.FirstOperand + b - op1.SecondOperand;
+			}
+			else if (b.IsAddition()) // x + (y - z) => x + y - z
+			{
+				var op2 = (BinaryOperationExpression)b;
+
+				return a + op2.FirstOperand - op2.SecondOperand;
+			}
+
 			return null;
 		}
 
@@ -78,7 +101,47 @@ namespace SolidSharp.Expressions
 		{
 			if (operands.IsDefaultOrEmpty || operands.Length < 2) throw new ArgumentException();
 
-			if (operands.Length == 2) TrySimplifyAddition(operands[0], operands[1]);
+			if (operands.Length == 2) return operands[0] + operands[1];
+
+			var builder = operands.ToBuilder();
+
+			SortOperands(builder);
+
+			int i = 1;
+
+			do
+			{
+				var simplification = TrySimplifyAddition(builder[i - 1], builder[i]);
+
+				if (simplification is null)
+				{
+					i++;
+				}
+				else
+				{
+					builder[i - 1] = simplification;
+					builder.RemoveAt(i);
+					if (i > 1) i--; // Track back by one item if something did change
+				}
+			}
+			while (i < builder.Count);
+
+			var finalOperands = builder.ToImmutableArray();
+
+			if (finalOperands.Length == 1)
+			{
+				return finalOperands[0];
+			}
+			else if (finalOperands.Length == 2)
+			{
+				// Directly create the result, because everything already has been evaluated
+				return new BinaryOperationExpression(BinaryOperator.Addition, finalOperands[0], finalOperands[1]);
+			}
+			else if (!StructuralEqualityComparer.Equals(operands, finalOperands))
+			{
+				// Directly create the result, because everything already has been evaluated
+				return new VariadicOperationExpression(VariadicOperator.Addition, finalOperands);
+			}
 
 			return null;
 		}
@@ -102,19 +165,18 @@ namespace SolidSharp.Expressions
 
 			if (a.IsSubtraction()) // (x₁ - x₂) - y => x₁ - (x₂ + y)
 			{
-				var e = (BinaryOperationExpression)a;
-				return SymbolicExpression.Subtract(e.FirstOperand, SymbolicExpression.Add(e.SecondOperand, b));
+				var op1 = (BinaryOperationExpression)a;
+				return op1.FirstOperand - (op1.SecondOperand + b);
 			}
 
 			if (a.IsNegation())
 			{
-				return SymbolicExpression.Subtract
+				return
 				(
 					b.IsNegation() ?
 						b.GetOperand() : // (-x) - (-y) => y - x
-						b, // (-x) + y => y - x
-					a.GetOperand()
-				);
+						b // (-x) + y => y - x
+				) - a.GetOperand();
 			}
 			else if (b.IsNegation()) // x - (-y) => x + y
 			{
@@ -155,7 +217,7 @@ namespace SolidSharp.Expressions
 
 				if (op1.FirstOperand.Equals(op2.FirstOperand)) // xⁿ⁰ * xⁿ¹ = xⁿ⁰⁺ⁿ¹
 				{
-					return SymbolicMath.Pow(op1.FirstOperand, op1.SecondOperand + op2.SecondOperand);
+					return Pow(op1.FirstOperand, op1.SecondOperand + op2.SecondOperand);
 				}
 			}
 			else if (a.IsPower())
@@ -208,8 +270,54 @@ namespace SolidSharp.Expressions
 
 		public static SymbolicExpression TrySimplifyMultiplication(ImmutableArray<SymbolicExpression> operands)
 		{
+			if (operands.IsDefaultOrEmpty || operands.Length < 2) throw new ArgumentException();
+
+			if (operands.Length == 2) return operands[0] * operands[1];
+
+			var builder = operands.ToBuilder();
+
+			SortOperands(builder);
+
+			int i = 1;
+
+			do
+			{
+				var simplification = TrySimplifyMultiplication(builder[i - 1], builder[i]);
+
+				if (simplification is null)
+				{
+					i++;
+				}
+				else
+				{
+					builder[i - 1] = simplification;
+					builder.RemoveAt(i);
+					if (i > 1) i--; // Track back by one item if something did change
+				}
+			}
+			while (i < builder.Count);
+
+			var finalOperands = builder.ToImmutableArray();
+
+			if (finalOperands.Length == 1)
+			{
+				return finalOperands[0];
+			}
+			else if (finalOperands.Length == 2)
+			{
+				// Directly create the result, because everything already has been evaluated
+				return new BinaryOperationExpression(BinaryOperator.Multiplication, finalOperands[0], finalOperands[1]);
+			}
+			else if (!StructuralEqualityComparer.Equals(operands, finalOperands))
+			{
+				// Directly create the result, because everything already has been evaluated
+				return new VariadicOperationExpression(VariadicOperator.Multiplication, finalOperands);
+			}
+
 			return null;
 		}
+
+		private static void SortOperands(ImmutableArray<SymbolicExpression>.Builder operands) => operands.Sort((x, y) => Comparer<byte>.Default.Compare(x.GetSortOrder(), y.GetSortOrder()));
 
 		public static SymbolicExpression TrySimplifyDivision(SymbolicExpression a, SymbolicExpression b)
 		{
@@ -219,7 +327,7 @@ namespace SolidSharp.Expressions
 				throw new DivideByZeroException();
 			}
 
-			if (b.Equals(SymbolicMath.One))
+			if (b.Equals(One))
 			{
 				return a;
 			}
@@ -243,7 +351,7 @@ namespace SolidSharp.Expressions
 
 				if (op1.FirstOperand.Equals(op2.FirstOperand)) // xⁿ⁰ / xⁿ¹ = xⁿ⁰⁻ⁿ¹
 				{
-					return SymbolicMath.Pow(op1.FirstOperand, op1.SecondOperand - op2.SecondOperand);
+					return Pow(op1.FirstOperand, op1.SecondOperand - op2.SecondOperand);
 				}
 			}
 			else if (a.IsPower())
@@ -265,7 +373,7 @@ namespace SolidSharp.Expressions
 					}
 				}
 
-				return a * SymbolicMath.Pow(op2.FirstOperand, -op2.SecondOperand);
+				return a * Pow(op2.FirstOperand, -op2.SecondOperand);
 			}
 
 			// Division merging
@@ -298,7 +406,7 @@ namespace SolidSharp.Expressions
 
 			if (gcd > 1)
 			{
-				return SymbolicExpression.Constant(v1 / gcd) / SymbolicExpression.Constant(v2 / gcd);
+				return N(v1 / gcd) / N(v2 / gcd);
 			}
 
 			return null;
@@ -325,7 +433,14 @@ namespace SolidSharp.Expressions
 				}
 				else if (a.IsAbsoluteValue() && (nb & 1) == 0) // |x|²ⁿ => x²ⁿ
 				{
-					return SymbolicMath.Pow(a.GetOperand(), b);
+					return Pow(a.GetOperand(), b);
+				}
+				else if (a.IsNumber())
+				{
+					var na = a.GetValue();
+
+					try { return MathUtil.Pow(na, nb); }
+					catch (OverflowException) { }
 				}
 				else if (a.IsRoot())
 				{
@@ -347,7 +462,7 @@ namespace SolidSharp.Expressions
 			{
 				var op1 = (BinaryOperationExpression)a;
 
-				return SymbolicMath.Pow(op1.FirstOperand, op1.SecondOperand * b);
+				return Pow(op1.FirstOperand, op1.SecondOperand * b);
 			}
 
 			return null;
@@ -379,7 +494,7 @@ namespace SolidSharp.Expressions
 							}
 							else // if y is even: (x^y)^(1/y) => |x|
 							{
-								return SymbolicMath.Abs(op1.FirstOperand);
+								return Abs(op1.FirstOperand);
 							}
 						}
 					}
@@ -390,7 +505,7 @@ namespace SolidSharp.Expressions
 			{
 				var op1 = (BinaryOperationExpression)a;
 
-				return SymbolicMath.Root(op1.FirstOperand, op1.SecondOperand * b);
+				return Root(op1.FirstOperand, op1.SecondOperand * b);
 			}
 
 			return null;

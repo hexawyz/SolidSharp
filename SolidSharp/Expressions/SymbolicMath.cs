@@ -49,6 +49,9 @@ namespace SolidSharp.Expressions
 		public static SymbolicExpression Cos(SymbolicExpression x)
 			=> new UnaryOperationExpression(UnaryOperator.Cos, x);
 
+		public static SymbolicExpression Tan(SymbolicExpression x)
+			=> new UnaryOperationExpression(UnaryOperator.Tan, x);
+
 		public static SymbolicExpression Ln(SymbolicExpression x)
 			=> new UnaryOperationExpression(UnaryOperator.Ln, x);
 

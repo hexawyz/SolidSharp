@@ -66,17 +66,33 @@ namespace SolidSharp.Expressions
 		/// This method will only succeed for expressions that represent unary operations.
 		/// You should always verify the kind of the expression before trying to retrieve its operands.
 		/// </remarks>
-		/// <param name="e">The expression.</param>
 		/// <returns>The operand of the expression.</returns>
 		/// <exception cref="NotSupportedException">This kind of expression doesn't have exactly one operand.</exception>
 		SymbolicExpression GetOperand();
+
+		/// <summary>Gets the first operand of the expression.</summary>
+		/// <remarks>
+		/// This method will only succeed for expressions that represent any kind of operations.
+		/// You should always verify the kind of the expression before trying to retrieve its operands.
+		/// </remarks>
+		/// <returns>The first operand of the expression.</returns>
+		/// <exception cref="NotSupportedException">This kind of expression doesn't have exactly one operand.</exception>
+		SymbolicExpression GetFirstOperand();
+
+		/// <summary>Gets the second operand of the expression.</summary>
+		/// <remarks>
+		/// This method will only succeed for expressions that represent an operation with at least two operands.
+		/// You should always verify the kind of the expression before trying to retrieve its operands.
+		/// </remarks>
+		/// <returns>The second operand of the expression.</returns>
+		/// <exception cref="NotSupportedException">This kind of expression doesn't have exactly one operand.</exception>
+		SymbolicExpression GetSecondOperand();
 
 		/// <summary>Gets the operands of the expression.</summary>
 		/// <remarks>
 		/// This method will only succeed for expressions that represent n-ary operations.
 		/// You should always verify the kind of the expression before trying to retrieve its operands.
 		/// </remarks>
-		/// <param name="e">The expression.</param>
 		/// <returns>An array containing the operands of the expression.</returns>
 		/// <exception cref="NotSupportedException">This kind of expression doesn't have any operand.</exception>
 		ImmutableArray<SymbolicExpression> GetOperands();

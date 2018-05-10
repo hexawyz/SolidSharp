@@ -116,6 +116,8 @@ namespace SolidSharp.Expressions
 
 		byte IExpression.GetPrecedence() => 0;
 		SymbolicExpression IExpression.GetOperand() => Operand;
+		SymbolicExpression IExpression.GetFirstOperand() => Operand;
+		SymbolicExpression IExpression.GetSecondOperand() => throw new NotSupportedException();
 		ImmutableArray<SymbolicExpression> IExpression.GetOperands() => ImmutableArray.Create(Operand);
 
 		#endregion

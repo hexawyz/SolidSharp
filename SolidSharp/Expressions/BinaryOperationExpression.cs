@@ -123,7 +123,7 @@ namespace SolidSharp.Expressions
 
 		bool IExpression.IsOperation => true;
 		bool IExpression.IsUnaryOperation => true;
-		bool IExpression.IsBinaryOperation => false;
+		bool IExpression.IsBinaryOperation => true;
 		bool IExpression.IsVariadicOperation => false;
 		bool IExpression.NeedsParentheses => true;
 
@@ -151,6 +151,8 @@ namespace SolidSharp.Expressions
 
 		byte IExpression.GetPrecedence() => Operator.GetPrecedence();
 		SymbolicExpression IExpression.GetOperand() => throw new NotSupportedException();
+		SymbolicExpression IExpression.GetFirstOperand() => FirstOperand;
+		SymbolicExpression IExpression.GetSecondOperand() => SecondOperand;
 		ImmutableArray<SymbolicExpression> IExpression.GetOperands() => ImmutableArray.Create(FirstOperand, SecondOperand);
 		
 		#endregion

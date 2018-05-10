@@ -94,6 +94,28 @@ namespace SolidSharp.Expressions.Extensions
 		public static SymbolicExpression GetOperand(this SymbolicExpression e)
 			=> ((IExpression)e).GetOperand();
 
+		/// <summary>Gets the first operand of the expression.</summary>
+		/// <remarks>
+		/// This method will only succeed for expressions that represent any kind of operations.
+		/// You should always verify the kind of the expression before trying to retrieve its operands.
+		/// </remarks>
+		/// <param name="e">The expression.</param>
+		/// <returns>The first operand of the expression.</returns>
+		/// <exception cref="NotSupportedException">This kind of expression doesn't have exactly one operand.</exception>
+		public static SymbolicExpression GetFirstOperand(this SymbolicExpression e)
+			=> ((IExpression) e).GetFirstOperand();
+
+		/// <summary>Gets the second operand of the expression.</summary>
+		/// <remarks>
+		/// This method will only succeed for expressions that represent an operation with at least two operands.
+		/// You should always verify the kind of the expression before trying to retrieve its operands.
+		/// </remarks>
+		/// <param name="e">The expression.</param>
+		/// <returns>The second operand of the expression.</returns>
+		/// <exception cref="NotSupportedException">This kind of expression doesn't have exactly one operand.</exception>
+		public static SymbolicExpression GetSecondOperand(this SymbolicExpression e)
+			=> ((IExpression) e).GetSecondOperand();
+
 		/// <summary>Gets the operands of the expression.</summary>
 		/// <remarks>
 		/// This method will only succeed for expressions that represent n-ary operations.

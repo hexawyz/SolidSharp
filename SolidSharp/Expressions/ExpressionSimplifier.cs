@@ -224,19 +224,36 @@ namespace SolidSharp.Expressions
 			else if (a.IsMinusOne()) return -b;
 			else if (b.IsOne()) return a;
 			else if (b.IsMinusOne()) return -a;
-			else if (a.Kind == b.Kind)
+			else if (a.IsNumber() && b.IsNumber()) // x * y => eval(x * y)
 			{
-				if (a.IsNumber()) // x * y => eval(x * y)
-				{
-					return checked(a.GetValue() * b.GetValue());
-				}
-				else if (a.Equals(b)) // x * x => x ^ 2
-				{
-					// This is maybe more like normalization than simplification.
-					// x * x and x ^ 2 are supposed to be exactly the same thing,
-					// but representing it as x ^ 2 might prove more useful later on.
-					return Pow(a, 2);
-				}
+				return checked(a.GetValue() * b.GetValue());
+			}
+			else if (a.IsNegativeNumber())
+			{
+				return -(-a.GetValue() * b);
+			}
+			else if (b.IsNegativeNumber())
+			{
+				return -(a * -b.GetValue());
+			}
+			else if (a.Equals(b)) // x * x => x ^ 2
+			{
+				// This is maybe more like normalization than simplification.
+				// x * x and x ^ 2 are supposed to be exactly the same thing,
+				// but representing it as x ^ 2 might prove more useful later on.
+				return Pow(a, 2);
+			}
+			else if (a.IsNegation() && b.IsNegation()) // (-x) * (-y) => x * y
+			{
+				return a.GetOperand() * b.GetOperand();
+			}
+			else if (a.IsNegation()) // (-x) * y => -(x * y)
+			{
+				return -(a.GetOperand() * b);
+			}
+			else if (b.IsNegation()) // x * (-y) => -(x * y)
+			{
+				return -(a * b.GetOperand());
 			}
 
 			// Power merging
@@ -390,9 +407,17 @@ namespace SolidSharp.Expressions
 			}
 
 			// Handle very trivial simplifications
-			if (a.IsNegation() && b.IsNegation())
+			if (a.IsNegation() && b.IsNegation()) // (-x)/(-y) => x/y
 			{
-				return -(a.GetOperand() / b.GetOperand());
+				return a.GetOperand() / b.GetOperand();
+			}
+			else if (a.IsNegation()) // (-x)/y => -(x/y)
+			{
+				return -(a.GetOperand() / b);
+			}
+			else if (b.IsNegation()) // x/(-y) => -(x/y)
+			{
+				return -(a / b.GetOperand());
 			}
 
 			if (a.IsConstant() && a.Equals(b)) // x ≠ 0, x / x => 1
@@ -594,12 +619,13 @@ namespace SolidSharp.Expressions
 
 				var op1 = (BinaryOperationExpression)a;
 
-				var da = TrySimplifyDivision(op1.FirstOperand, b);
-				var db = TrySimplifyDivision(op1.SecondOperand, b);
-
-				if (!(da is null && db is null))
+				if (TrySimplifyDivision(op1.FirstOperand, b) is SymbolicExpression da)
 				{
-					return (da ?? op1.FirstOperand) * (db ?? op1.SecondOperand);
+					return da * op1.SecondOperand;
+				}
+				else if (TrySimplifyDivision(op1.SecondOperand, b) is SymbolicExpression db)
+				{
+					return op1.FirstOperand * db;
 				}
 			}
 			else
@@ -613,7 +639,6 @@ namespace SolidSharp.Expressions
 				// TODO: improve.
 
 				var operands = a.GetOperands();
-				bool mutated = false;
 
 				for (int i = 0; i < operands.Length; i++)
 				{
@@ -622,13 +647,8 @@ namespace SolidSharp.Expressions
 					if (!(d is null))
 					{
 						operands = operands.SetItem(i, d);
-						mutated = true;
+						return SymbolicExpression.Multiply(operands);
 					}
-				}
-
-				if (mutated)
-				{
-					return SymbolicExpression.Multiply(operands);
 				}
 			}
 			return null;
@@ -684,6 +704,11 @@ namespace SolidSharp.Expressions
 				else if (a.IsAbsoluteValue() && (nb & 1) == 0) // |x|²ⁿ => x²ⁿ
 				{
 					return Pow(a.GetOperand(), b);
+				}
+				else if (a.IsNegation() && b.IsNumber())
+				{
+					var p = Pow(a.GetOperand(), b);
+					return b.IsOddNumber() ? -p : p;
 				}
 				else if (a.IsNumber())
 				{
@@ -785,13 +810,36 @@ namespace SolidSharp.Expressions
 
 		public static SymbolicExpression TrySimplifySin(SymbolicExpression x)
 		{
-			if (TrySimplifyDivision(x, Pi) is SymbolicExpression n)
-			{
-				if (n.IsNumber()) return Zero; // sin(n * π) => 0
+			long c = 0;
 
-				if (n.IsDivision())
+			if (x.IsNegation())
+			{
+				c = 1;
+				x = x.GetOperand();
+			}
+
+			x = TrySimplifyDivision(x, Pi);
+
+			// We can only work with fractions of π. Thus we need to divide 
+			if (!(x is null))
+			{
+				if (x.IsAddition() || x.IsSubtraction()) // Remove constant part: (N + X) => X
 				{
-					var op = (BinaryOperationExpression)n;
+					var a = x.GetFirstOperand();
+					var b = x.GetSecondOperand();
+
+					if (a.IsNumber() && (b.IsNumber() || b.IsDivision()))
+					{
+						c += a.GetValue();
+						x = b;
+					}
+				}
+
+				if (x.IsNumber()) return Zero; // sin(n * π) => 0
+
+				if (x.IsDivision()) // Expecting a fraction of integers here… Well known values of sin(x) can then be returned.
+				{
+					var op = (BinaryOperationExpression)x;
 
 					if (op.FirstOperand.IsNumber() && op.SecondOperand.IsNumber())
 					{
@@ -800,11 +848,7 @@ namespace SolidSharp.Expressions
 
 						if (p == 1 && q == 2)
 						{
-							return One;
-						}
-						else if (p == 3 && q == 2)
-						{
-							return MinusOne;
+							return (c & 1) != 0 ? MinusOne : One;
 						}
 					}
 				}

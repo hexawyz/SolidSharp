@@ -82,6 +82,8 @@ namespace SolidSharp.Expressions
 
 		byte IExpression.GetPrecedence() => Operator.GetPrecedence();
 		SymbolicExpression IExpression.GetOperand() => throw new NotSupportedException();
+		SymbolicExpression IExpression.GetFirstOperand() => Operands[0];
+		SymbolicExpression IExpression.GetSecondOperand() => Operands[1];
 		ImmutableArray<SymbolicExpression> IExpression.GetOperands() => Operands;
 
 		#endregion

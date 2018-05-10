@@ -200,6 +200,62 @@ namespace SolidSharp.Tests.Expressions
 		}
 
 		[Fact]
+		public void NegativeDividedByNegativeShouldBePositive()
+		{
+			var t = Var("𝓉");
+
+			Assert.Equal(t / t, (-t) / (-t));
+		}
+
+		[Fact]
+		public void NegativeMultipliedByNegativeShouldBePositive()
+		{
+			var x = Var("𝓍");
+			var y = Var("𝓎");
+
+			Assert.Equal(x * y, (-x) * (-y));
+		}
+
+		[Fact]
+		public void NegativeSquaredShouldBePositive()
+		{
+			var t = Var("𝓉");
+			
+			Assert.Equal(t * t, (-t) * (-t));
+		}
+
+		[Theory]
+		[InlineData(2)]
+		[InlineData(4)]
+		[InlineData(6)]
+		[InlineData(8)]
+		[InlineData(10)]
+		[InlineData(80)]
+		[InlineData(444)]
+		public void NegativeToEvenPowerShouldBePositive(int power)
+		{
+			var t = Var("𝓉");
+
+			Assert.Equal(Pow(t, power), Pow(-t, power));
+		}
+
+		[Theory]
+		[InlineData(1)]
+		[InlineData(3)]
+		[InlineData(5)]
+		[InlineData(7)]
+		[InlineData(9)]
+		[InlineData(11)]
+		[InlineData(79)]
+		[InlineData(333)]
+		public void NegativeToOddPowerShouldBeNegative(int power)
+		{
+			var t = Var("𝓉");
+
+			Assert.Equal(-Pow(t, power), Pow(-t, power));
+		}
+
+		[Fact]
 		public void SquareRootSquaredShouldNegate()
 		{
 			var t = Var("𝓉");

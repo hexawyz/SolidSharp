@@ -1,11 +1,18 @@
 ﻿using SolidSharp.Expressions.Extensions;
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace SolidSharp.Expressions
 {
 	public sealed class VariadicOperationExpression : SymbolicExpression, IEquatable<VariadicOperationExpression>, IExpression
-    {
+	{
+		private static readonly Dictionary<VariadicOperator, string> OperatorToString = new Dictionary<VariadicOperator, string>
+		{
+			{ VariadicOperator.Addition, " + " },
+			{ VariadicOperator.Multiplication, " × " },
+		};
+
 		public VariadicOperator Operator { get; }
 		public ImmutableArray<SymbolicExpression> Operands { get; }
 
@@ -45,6 +52,9 @@ namespace SolidSharp.Expressions
 
 			return this;
 		}
+
+		public override string ToString()
+			=> string.Join(OperatorToString[Operator], Operands);
 
 		public bool Equals(VariadicOperationExpression other)
 			=> ReferenceEquals(this, other)

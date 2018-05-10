@@ -508,14 +508,9 @@ namespace SolidSharp.Expressions
 			}
 			// TODO: Improve division propagation in multiplications
 			// Try propagate the division inside the multiplication (That can simplify some expressions)
-			else if (a.IsMultiplication())
+			else if (a.IsMultiplication() || b.IsMultiplication())
 			{
 				if (TrySimplifyMultiplicationDivision(a, b) is SymbolicExpression result) return result;
-			}
-			else if (b.IsMultiplication())
-			{
-				// TODO: This case should be handled too…
-				// The method should be like TryDivide(TopFactors[], BottomFactors[])…
 			}
 
 			return null;
@@ -613,43 +608,129 @@ namespace SolidSharp.Expressions
 			// (x * y * z) / w = (x/w) * y * z = x * (y/w) * z = x * y * (z/w)
 			// Simplify the division if any of x, y, z (etc.) is simplified.
 
-			if (a.IsBinaryOperation())
+			// For basic binary multiplications, the process is quite easy, and will avoid too many array allocations…
+			if (a.IsBinaryOperation() && !b.IsMultiplication())
 			{
-				// For basic binary multiplications, the process is quite easy…
-
-				var op1 = (BinaryOperationExpression)a;
-
-				if (TrySimplifyDivision(op1.FirstOperand, b) is SymbolicExpression da)
+				if (TrySimplifyDivision(a.GetFirstOperand(), b) is SymbolicExpression da)
 				{
-					return da * op1.SecondOperand;
+					return da * a.GetSecondOperand();
 				}
-				else if (TrySimplifyDivision(op1.SecondOperand, b) is SymbolicExpression db)
+				else if (TrySimplifyDivision(a.GetSecondOperand(), b) is SymbolicExpression db)
 				{
-					return op1.FirstOperand * db;
+					return a.GetFirstOperand() * db;
+				}
+			}
+			else if (!a.IsMultiplication() && b.IsBinaryOperation())
+			{
+				if (TrySimplifyDivision(a, b.GetFirstOperand()) is SymbolicExpression da)
+				{
+					return da / b.GetSecondOperand();
+				}
+				else if (TrySimplifyDivision(a, b.GetSecondOperand()) is SymbolicExpression db)
+				{
+					return db / b.GetFirstOperand();
 				}
 			}
 			else
 			{
-				// For n-ary multiplications, the process is more complicated.
-				// The current version may not work correctly in the general case,
-				// as it won't really handle anything other than division by a number or constant.
+				// For simplifying two multiplications, we basically have to to a O(n*m) loop over all operands…
+				return TrySimplifyMultiplicationDivision
+				(
+					a.IsMultiplication() ?
+						a.GetOperands() :
+						ImmutableArray.Create(a),
+					b.IsMultiplication() ?
+						b.GetOperands() :
+						ImmutableArray.Create(b)
+				);
+			}
 
-				// Cases such as (x * y * z) / (x * z) => y should be handled, but they are lileky not for now.
+			return null;
+		}
+		
+		private static SymbolicExpression TrySimplifyMultiplicationDivision(ImmutableArray<SymbolicExpression> pItems, ImmutableArray<SymbolicExpression> qItems)
+		{
+			// For n-ary multiplications, the process is more complicated.
+			// Basically, the simplification has to be done iteratively, for each divisor.
 
-				// TODO: improve.
+			// NB: There might be huge inefficiencies or bug in the way things are done here…
+			// We might want to take things more slowly and redo the whole simplification pass each time an operator is solved.
+			// (e.g. In case the division simplification keeps a division somewhere… I feel like this method may be breaking the process.)
+			// Since tests are passing, the current implementation will do for now.
 
-				var operands = a.GetOperands();
+			var pBuilder = pItems.ToBuilder();
+			var qBuilder = qItems.ToBuilder();
+			bool modified = false;
 
-				for (int i = 0; i < operands.Length; i++)
+			int i = 0;
+			int j = 0;
+
+			while (i < pBuilder.Count && j < qBuilder.Count) // i is p, j is q
+			{
+				var d = TrySimplifyDivision(pBuilder[i], qBuilder[j]);
+
+				// If we succesfully simplified something, we can replace the upper element, and remove the lower element.
+				if (!(d is null))
 				{
-					var d = TrySimplifyDivision(operands[i], b);
+					pBuilder[i] = d;
+					qBuilder.RemoveAt(j);
 
-					if (!(d is null))
+					if (TrySimplifyMultiplication(pBuilder.MoveToImmutable()) is SymbolicExpression m)
 					{
-						operands = operands.SetItem(i, d);
-						return SymbolicExpression.Multiply(operands);
+						if (m.IsMultiplication())
+						{
+							var operands = m.GetOperands();
+							pBuilder.Capacity = operands.Length;
+							pBuilder.AddRange(operands);
+						}
+						else
+						{
+							pBuilder.Capacity = 1;
+							pBuilder[0] = m;
+						}
+
+						j = i = 0;
+					}
+
+					modified = true;
+				}
+				else
+				{
+					++j;
+				}
+
+				if (j >= qBuilder.Count)
+				{
+					++i;
+					j = 0;
+				}
+			}
+
+			if (modified)
+			{
+				var p = pBuilder.Count > 1 ?
+					pBuilder.Count == 2 ?
+						new BinaryOperationExpression(BinaryOperator.Multiplication, pBuilder[0], pBuilder[1]) as SymbolicExpression :
+						new VariadicOperationExpression(VariadicOperator.Multiplication, pBuilder.MoveToImmutable()) :
+					pBuilder[0];
+
+				if (qBuilder.Count > 0)
+				{
+					if (qBuilder.Count == 1)
+					{
+						return p / qBuilder[0];
+					}
+					else if (qBuilder.Count == 2)
+					{
+						return p / new BinaryOperationExpression(BinaryOperator.Multiplication, qBuilder[0], qBuilder[1]);
+					}
+					else
+					{
+						return p / new VariadicOperationExpression(VariadicOperator.Multiplication, qBuilder.ToImmutable());
 					}
 				}
+
+				return p;
 			}
 			return null;
 		}

@@ -36,6 +36,24 @@ namespace SolidSharp.Tests.Expressions
 		}
 
 		[Fact]
+		public void PowersAndMultiplicationsShouldMerge()
+		{
+			var t = Var("𝓉");
+
+			Assert.Equal(Pow(2, 3 + t), 8 * Pow(2, t));
+			Assert.Equal(Pow(2, 3 + t), Pow(2, t) * 8);
+			
+			Assert.Equal(3 * Pow(2, 4 + t), 48 * Pow(2, t));
+			Assert.Equal(3 * Pow(2, 4 + t), Pow(2, t) * 48);
+
+			Assert.Equal(Pow(3, 2 + t), 9 * Pow(3, t));
+			Assert.Equal(Pow(3, 2 + t), Pow(3, t) * 9);
+
+			Assert.Equal(2 * Pow(3, 4 + t), 162 * Pow(3, t));
+			Assert.Equal(2 * Pow(3, 4 + t), Pow(3, t) * 162);
+		}
+
+		[Fact]
 		public void AdditionsShouldMerge()
 		{
 			var x = Var("𝓍");
@@ -50,6 +68,70 @@ namespace SolidSharp.Tests.Expressions
 			Assert.Equal(expected, (x + y) + (z + w));
 			Assert.Equal(expected, (x + (y + z)) + w);
 			Assert.Equal(expected, ((x + y) + z) + w);
+		}
+
+		[Fact]
+		public void MultiplicationsShouldMerge()
+		{
+			var x = Var("𝓍");
+			var y = Var("𝓎");
+			var z = Var("𝓏");
+			var w = Var("𝓌");
+
+			var expected = SymbolicExpression.Multiply(ImmutableArray.Create(x, y, z, w));
+
+			Assert.Equal(expected, x * (y * (z * w)));
+			Assert.Equal(expected, x * ((y * z) * w));
+			Assert.Equal(expected, (x * y) * (z * w));
+			Assert.Equal(expected, (x * (y * z)) * w);
+			Assert.Equal(expected, ((x * y) * z) * w);
+		}
+
+		[Fact]
+		public void NumbersShouldBeOrderedFirstInCommutativeBinaryOperations()
+		{
+			var t = Var("𝓉");
+
+			var addition = t + 99;
+
+			Assert.Equal(99 + t, addition);
+			Assert.Equal(99, ((BinaryOperationExpression)(addition)).FirstOperand);
+
+			var multiplication = t * 138;
+
+			Assert.Equal(138 * t, multiplication);
+			Assert.Equal(138, ((BinaryOperationExpression)(multiplication)).FirstOperand);
+		}
+
+		[Fact]
+		public void NumbersShouldBeOrderedFirstInCommutativeVariadicOperations()
+		{
+			var t = Var("𝓉");
+
+			var addition = SymbolicExpression.Add(ImmutableArray.Create(t, Pi, 735, Pow(t, 2)));
+
+			Assert.Equal(735 + Pi + t + Pow(t, 2), addition);
+			Assert.Equal(735, ((VariadicOperationExpression)addition).Operands[0]);
+
+			var multiplication = SymbolicExpression.Multiply(ImmutableArray.Create(t, Pow(t, 2), 78, Pow(E, t), Pi));
+
+			Assert.Equal(78 * Pi * t * Pow(t, 2) * Pow(E, t), multiplication);
+			Assert.Equal(78, ((VariadicOperationExpression)multiplication).Operands[0]);
+		}
+
+		[Fact]
+		public void MultiplicationByZeroShouldBeZero()
+		{
+			var t = Var("𝓉");
+
+			Assert.Equal(0, N(0) * N(641));
+			Assert.Equal(0, N(641) * N(0));
+
+			Assert.Equal(0, N(0) * Pi);
+			Assert.Equal(0, Pi * N(0));
+
+			Assert.Equal(0, t * 0);
+			Assert.Equal(0, 0 * t);
 		}
 
 		[Fact]

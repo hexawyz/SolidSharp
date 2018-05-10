@@ -35,5 +35,39 @@ namespace SolidSharp
 				return false;
 			}
 		}
+
+		public static bool Equals<T>(ImmutableArray<T> a, ImmutableArray<T>.Builder b)
+		{
+			if (!a.IsDefault && b != null)
+			{
+				if (a.Length == b.Count)
+				{
+					for (int i = 0; i < a.Length; i++)
+					{
+						if (!EqualityComparer<T>.Default.Equals(a[i], b[i]))
+						{
+							return false;
+						}
+					}
+
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			}
+			else if (a.IsDefault && b == null)
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+		public static bool Equals<T>(ImmutableArray<T>.Builder a, ImmutableArray<T> b)
+			=> Equals(b, a);
 	}
 }

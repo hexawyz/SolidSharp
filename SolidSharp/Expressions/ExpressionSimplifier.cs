@@ -29,6 +29,29 @@ namespace SolidSharp.Expressions
 			return null;
 		}
 
+		// Sorts the two expressions by arbitrary order, (mainly based on the kind of expression or the operator)
+		// for easing computations a bit. (e.g. Enforcing that a constant would always come before a power operation)
+		// This is to be used only for commutative operations…
+		private static bool SortExpressions(ref SymbolicExpression a, ref SymbolicExpression b)
+		{
+			if (a.GetSortOrder() > b.GetSortOrder())
+			{
+				MathUtil.Swap(ref a, ref b);
+				return true;
+			}
+
+			return false;
+		}
+
+		// Sorts a list of expression by arbitrary order.
+		private static ImmutableArray<SymbolicExpression>.Builder SortExpressions(ImmutableArray<SymbolicExpression> operands)
+		{
+			// Use LINQ to provide a stable sort.
+			var builder = ImmutableArray.CreateBuilder<SymbolicExpression>(operands.Length);
+			builder.AddRange(operands.OrderBy(o => o.GetSortOrder()));
+			return builder;
+		}
+
 		public static SymbolicExpression TrySimplifyAddition(SymbolicExpression a, SymbolicExpression b)
 		{
 			// Trivial simplifications
@@ -94,7 +117,9 @@ namespace SolidSharp.Expressions
 				return a + op2.FirstOperand - op2.SecondOperand;
 			}
 
-			return null;
+			return SortExpressions(ref a, ref b) ?
+				new BinaryOperationExpression(BinaryOperator.Addition, a, b) :
+				null;
 		}
 
 		public static SymbolicExpression TrySimplifyAddition(ImmutableArray<SymbolicExpression> operands)
@@ -103,9 +128,7 @@ namespace SolidSharp.Expressions
 
 			if (operands.Length == 2) return operands[0] + operands[1];
 
-			var builder = operands.ToBuilder();
-
-			SortOperands(builder);
+			var builder = SortExpressions(operands);
 
 			int i = 1;
 
@@ -125,22 +148,20 @@ namespace SolidSharp.Expressions
 				}
 			}
 			while (i < builder.Count);
-
-			var finalOperands = builder.ToImmutableArray();
-
-			if (finalOperands.Length == 1)
+			
+			if (builder.Count == 1)
 			{
-				return finalOperands[0];
+				return builder[0];
 			}
-			else if (finalOperands.Length == 2)
+			else if (builder.Count == 2)
 			{
 				// Directly create the result, because everything already has been evaluated
-				return new BinaryOperationExpression(BinaryOperator.Addition, finalOperands[0], finalOperands[1]);
+				return new BinaryOperationExpression(BinaryOperator.Addition, builder[0], builder[1]);
 			}
-			else if (!StructuralEqualityComparer.Equals(operands, finalOperands))
+			else if (!StructuralEqualityComparer.Equals(operands, builder))
 			{
 				// Directly create the result, because everything already has been evaluated
-				return new VariadicOperationExpression(VariadicOperator.Addition, finalOperands);
+				return new VariadicOperationExpression(VariadicOperator.Addition, builder.ToImmutableArray());
 			}
 
 			return null;
@@ -196,16 +217,16 @@ namespace SolidSharp.Expressions
 			else if (b.IsMinusOne()) return -a;
 			else if (a.Kind == b.Kind)
 			{
-				if (a.Equals(b)) // x * x => x ^ 2
+				if (a.IsNumber()) // x * y => eval(x * y)
+				{
+					return checked(a.GetValue() * b.GetValue());
+				}
+				else if (a.Equals(b)) // x * x => x ^ 2
 				{
 					// This is maybe more like normalization than simplification.
 					// x * x and x ^ 2 are supposed to be exactly the same thing,
 					// but representing it as x ^ 2 might prove more useful later on.
-					return SymbolicMath.Pow(a, 2);
-				}
-				else if (a.IsNumber()) // x * y => eval(x * y)
-				{
-					return checked(a.GetValue() * b.GetValue());
+					return Pow(a, 2);
 				}
 			}
 
@@ -222,9 +243,17 @@ namespace SolidSharp.Expressions
 			}
 			else if (a.IsPower())
 			{
+				if (TryMergePowerMultiplication(b, (BinaryOperationExpression)a) is SymbolicExpression result)
+				{
+					return result;
+				}
 			}
 			else if (b.IsPower())
 			{
+				if (TryMergePowerMultiplication(a, (BinaryOperationExpression)b) is SymbolicExpression result)
+				{
+					return result;
+				}
 			}
 
 			// Division merging
@@ -260,11 +289,36 @@ namespace SolidSharp.Expressions
 				return SymbolicExpression.Multiply(b.GetOperands().Insert(0, a));
 			}
 
-			return null;
+			return SortExpressions(ref a, ref b) ?
+				new BinaryOperationExpression(BinaryOperator.Multiplication, a, b) :
+				null;
 		}
 
-		private static SymbolicExpression TryMergePowerMultiplication(SymbolicExpression e, BinaryOperationExpression power)
+		private static SymbolicExpression TryMergePowerMultiplication(SymbolicExpression x, BinaryOperationExpression power)
 		{
+			if (x.IsNumber() && power.FirstOperand.IsNumber())
+			{
+				long na = x.GetValue();
+				long nb = power.FirstOperand.GetValue();
+
+				int n = 0;
+
+				while (na > 1 && Math.DivRem(na, nb, out long r) is long q && r == 0)
+				{
+					na = q;
+					n++;
+				}
+
+				if (n > 0)
+				{
+					var powerExpression = Pow(power.FirstOperand, n + power.SecondOperand);
+
+					return na > 1 ?
+						na * powerExpression :
+						powerExpression;
+				}
+			}
+
 			return null;
 		}
 
@@ -273,10 +327,8 @@ namespace SolidSharp.Expressions
 			if (operands.IsDefaultOrEmpty || operands.Length < 2) throw new ArgumentException();
 
 			if (operands.Length == 2) return operands[0] * operands[1];
-
-			var builder = operands.ToBuilder();
-
-			SortOperands(builder);
+			
+			var builder = SortExpressions(operands);
 
 			int i = 1;
 
@@ -296,28 +348,24 @@ namespace SolidSharp.Expressions
 				}
 			}
 			while (i < builder.Count);
-
-			var finalOperands = builder.ToImmutableArray();
-
-			if (finalOperands.Length == 1)
+			
+			if (builder.Count == 1)
 			{
-				return finalOperands[0];
+				return builder[0];
 			}
-			else if (finalOperands.Length == 2)
+			else if (builder.Count == 2)
 			{
 				// Directly create the result, because everything already has been evaluated
-				return new BinaryOperationExpression(BinaryOperator.Multiplication, finalOperands[0], finalOperands[1]);
+				return new BinaryOperationExpression(BinaryOperator.Multiplication, builder[0], builder[1]);
 			}
-			else if (!StructuralEqualityComparer.Equals(operands, finalOperands))
+			else if (!StructuralEqualityComparer.Equals(operands, builder))
 			{
 				// Directly create the result, because everything already has been evaluated
-				return new VariadicOperationExpression(VariadicOperator.Multiplication, finalOperands);
+				return new VariadicOperationExpression(VariadicOperator.Multiplication, builder.ToImmutableArray());
 			}
 
 			return null;
 		}
-
-		private static void SortOperands(ImmutableArray<SymbolicExpression>.Builder operands) => operands.Sort((x, y) => Comparer<byte>.Default.Compare(x.GetSortOrder(), y.GetSortOrder()));
 
 		public static SymbolicExpression TrySimplifyDivision(SymbolicExpression a, SymbolicExpression b)
 		{

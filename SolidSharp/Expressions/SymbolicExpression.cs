@@ -127,23 +127,18 @@ namespace SolidSharp.Expressions
 			=> ExpressionSimplifier.TrySimplifyDivision(a, b)
 			?? new BinaryOperationExpression(BinaryOperator.Division, a, b);
 
-		public static SymbolicExpression operator +(SymbolicExpression e)
-			=> e;
-
-		public static SymbolicExpression operator -(SymbolicExpression e)
-			=> Negate(e);
-
-		public static SymbolicExpression operator +(SymbolicExpression a, SymbolicExpression b)
-			=> Add(a, b);
-
-		public static SymbolicExpression operator -(SymbolicExpression a, SymbolicExpression b)
-			=> Subtract(a, b);
-
-		public static SymbolicExpression operator *(SymbolicExpression a, SymbolicExpression b)
-			=> Multiply(a, b);
-
-		public static SymbolicExpression operator /(SymbolicExpression a, SymbolicExpression b)
-			=> Divide(a, b);
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static SymbolicExpression operator +(SymbolicExpression e) => e;
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static SymbolicExpression operator -(SymbolicExpression e) => Negate(e);
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static SymbolicExpression operator +(SymbolicExpression a, SymbolicExpression b) => Add(a, b);
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static SymbolicExpression operator -(SymbolicExpression a, SymbolicExpression b) => Subtract(a, b);
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static SymbolicExpression operator *(SymbolicExpression a, SymbolicExpression b) => Multiply(a, b);
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static SymbolicExpression operator /(SymbolicExpression a, SymbolicExpression b) => Divide(a, b);
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static implicit operator SymbolicExpression(sbyte value) => Constant(value);

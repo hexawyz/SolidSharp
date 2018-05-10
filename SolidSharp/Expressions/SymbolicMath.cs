@@ -44,7 +44,8 @@ namespace SolidSharp.Expressions
 			?? new BinaryOperationExpression(BinaryOperator.Root, x, y);
 
 		public static SymbolicExpression Sin(SymbolicExpression x)
-			=> new UnaryOperationExpression(UnaryOperator.Sin, x);
+			=> ExpressionSimplifier.TrySimplifySin(x)
+			?? new UnaryOperationExpression(UnaryOperator.Sin, x);
 
 		public static SymbolicExpression Cos(SymbolicExpression x)
 			=> new UnaryOperationExpression(UnaryOperator.Cos, x);

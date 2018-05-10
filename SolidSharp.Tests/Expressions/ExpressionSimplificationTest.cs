@@ -1,5 +1,6 @@
 ﻿using SolidSharp.Expressions;
 using System.Collections.Immutable;
+using System.Reflection;
 using Xunit;
 using static SolidSharp.Expressions.SymbolicMath;
 
@@ -179,6 +180,18 @@ namespace SolidSharp.Tests.Expressions
 			Assert.Equal(N(pa) / N(qa), N(pb) / N(qb));
 		}
 
+		[Theory]
+		[InlineData("Pi")]
+		[InlineData("E")]
+		public void ConstantDividedByItselfShouldGiveOne(string constantName)
+		{
+			var c = (SymbolicExpression)typeof(ConstantExpression).GetTypeInfo().GetField(constantName).GetValue(null);
+
+			Assert.Equal(1, c / c);
+			Assert.Equal(1, c * (1 / c));
+			Assert.Equal(1, (1 / c) * c);
+		}
+
 		[Fact]
 		public void SquareRootSquaredShouldNegate()
 		{
@@ -249,6 +262,18 @@ namespace SolidSharp.Tests.Expressions
 		public void DecimalNumbersShouldConvertToFractions(decimal number, long numerator, long denominator)
 		{
 			Assert.Equal(N(numerator) / N(denominator), N(number));
+		}
+
+		[Fact]
+		public void DivisionShouldSimplifyMultiplications()
+		{
+			var t = Var("𝓉");
+
+			Assert.Equal(t, (2 * t) / 2);
+			Assert.Equal(2 * t, (4 * t) / 2);
+
+			Assert.Equal(t, (Pi * t) / Pi);
+			Assert.Equal(2 * t, (2 * Pi * t) / Pi);
 		}
 	}
 }

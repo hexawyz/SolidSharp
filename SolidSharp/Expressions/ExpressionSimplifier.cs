@@ -382,6 +382,11 @@ namespace SolidSharp.Expressions
 
 			if (a.Kind == b.Kind) // Handle very trivial simplifications
 			{
+				if (a.IsConstant() && a.Equals(b))
+				{
+					return One;
+				}
+
 				// TODO: To optimize away x/x in the general case, we need to assert that x is not null… (Assertions are needed !)
 
 				// Try to simplify numeric fractions
@@ -389,6 +394,11 @@ namespace SolidSharp.Expressions
 				{
 					return result;
 				}
+	
+			}
+			else if (a.IsZero() && b.IsConstant()) // y ≠ 0, x / y => 0
+			{
+				return Zero;
 			}
 
 			// Power merging
@@ -404,6 +414,7 @@ namespace SolidSharp.Expressions
 			}
 			else if (a.IsPower())
 			{
+				// TODO: Simplify power divisions
 			}
 			else if (b.IsPower()) // x / (yⁿ) => x * y⁻ⁿ
 			{
@@ -441,6 +452,44 @@ namespace SolidSharp.Expressions
 			{
 				var op2 = (BinaryOperationExpression)b;
 				return a * op2.SecondOperand / op2.FirstOperand;
+			}
+
+			// Try propagate the division inside the multiplication (That can simplify some expressions)
+			if (a.IsMultiplication())
+			{
+				if (a.IsBinaryOperation())
+				{
+					var op1 = (BinaryOperationExpression)a;
+
+					var da = TrySimplifyDivision(op1.FirstOperand, b);
+					var db = TrySimplifyDivision(op1.SecondOperand, b);
+
+					if (!(da is null && db is null))
+					{
+						return (da ?? op1.FirstOperand) * (db ?? op1.SecondOperand);
+					}
+				}
+				else
+				{
+					var operands = a.GetOperands().ToBuilder();
+					bool mutated = false;
+
+					for (int i = 0; i < operands.Count; i++)
+					{
+						var d = TrySimplifyDivision(operands[i], b);
+
+						if (!(d is null))
+						{
+							operands[i] = d;
+							mutated = true;
+						}
+					}
+
+					if (mutated)
+					{
+						return SymbolicExpression.Multiply(operands.ToImmutableArray());
+					}
+				}
 			}
 
 			return null;
@@ -560,24 +609,31 @@ namespace SolidSharp.Expressions
 			return null;
 		}
 
-		public static SymbolicExpression TrySimplifyAbs(SymbolicExpression e)
+		public static SymbolicExpression TrySimplifyAbs(SymbolicExpression x)
 		{
-			if (e.IsNumber())
+			if (x.IsNumber())
 			{
-				return e.IsNegativeNumber() ?
-					-e :
-					e;
+				return x.IsNegativeNumber() ?
+					-x :
+					x;
 			}
 
-			if (e.IsPower()) // |x²ⁿ| => x²ⁿ
+			if (x.IsPower()) // |x²ⁿ| => x²ⁿ
 			{
-				var op = (BinaryOperationExpression)e;
+				var op = (BinaryOperationExpression)x;
 
 				if (op.SecondOperand.IsEvenNumber())
 				{
-					return e;
+					return x;
 				}
 			}
+
+			return null;
+		}
+
+		public static SymbolicExpression TrySimplifySin(SymbolicExpression x)
+		{
+			if (x.IsZero() || x.Equals(Pi)) return Zero;
 
 			return null;
 		}

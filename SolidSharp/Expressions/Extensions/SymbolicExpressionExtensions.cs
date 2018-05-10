@@ -67,6 +67,9 @@ namespace SolidSharp.Expressions.Extensions
 		public static bool IsMinusOne(this SymbolicExpression e)
 			=> ReferenceEquals(e, NumberExpression.MinusOne); // This will work because we're making sure that MinusOne is a singleton.
 
+		public static bool IsConstant(this SymbolicExpression e)
+			=> ((IExpression)e).IsConstant;
+
 		/// <summary>Gets the precedence of the operation.</summary>
 		/// <returns>A value indicating the priority of the operation, the lower the highest.</returns>
 		/// <exception cref="NotSupportedException">This expression is not an operation.</exception>

@@ -51,6 +51,6 @@ namespace SolidSharp.Vectors
 
 		public SymbolicExpression ComputeDeterminant() => throw new NotImplementedException();
 
-		public Matrix4x3 Inverse() => throw new NotImplementedException();
+		public Matrix4x3 Invert() => throw new NotImplementedException();
 	}
 }

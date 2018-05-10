@@ -448,6 +448,7 @@ namespace SolidSharp.Expressions
 
 		private static SymbolicExpression TrySimplifyFraction(long v1, long v2)
 		{
+			if (v1 == 0) return NumberExpression.Zero; // 0 / x => 0
 			if (v1 == v2) return NumberExpression.One; // x / x => 1
 
 			long gcd = checked((long)MathUtil.Gcd(v1, v2));

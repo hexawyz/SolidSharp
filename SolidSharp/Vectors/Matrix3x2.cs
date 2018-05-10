@@ -1,5 +1,8 @@
 ﻿using SolidSharp.Expressions;
 using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using static SolidSharp.Expressions.SymbolicMath;
 
 namespace SolidSharp.Vectors
 {
@@ -8,8 +11,15 @@ namespace SolidSharp.Vectors
 	/// This 3x2 matrix is used to represent a 3x3 matrix whose third column would always be (0, 0, 1).
 	/// The data is stored in column major order, thus using two column <see cref="Vector3"/>.
 	/// </remarks>
-	public readonly struct Matrix3x2
-    {
+	public readonly struct Matrix3x2 : IEquatable<Matrix3x2>
+	{
+		public static readonly Matrix3x2 Identity = new Matrix3x2
+		(
+			1, 0,
+			0, 1,
+			0, 0
+		);
+
 		public Vector3 Column1 { get; }
 		public Vector3 Column2 { get; }
 
@@ -40,7 +50,7 @@ namespace SolidSharp.Vectors
 		public SymbolicExpression Determinant
 			=> M11 * M22 - M21 * M12;
 
-		public Matrix3x2 Inverse()
+		public Matrix3x2 Invert()
 		{
 			var det = Determinant;
 
@@ -93,12 +103,38 @@ namespace SolidSharp.Vectors
 				translateX, translateY
 			);
 
-		public static Matrix3x2 operator *(in Matrix3x2 a, in Matrix3x2 b)
+		public static Matrix3x2 Rotate(SymbolicExpression angle)
+			=> new Matrix3x2
+			(
+				Cos(angle), Sin(angle),
+				-Sin(angle), Cos(angle),
+				0, 0
+			);
+
+		public override bool Equals(object obj)
+			=> obj is Matrix3x2 other && Equals(other);
+
+		public bool Equals(Matrix3x2 other)
+			=> EqualityComparer<Vector3>.Default.Equals(Column1, other.Column1)
+			&& EqualityComparer<Vector3>.Default.Equals(Column2, other.Column2);
+
+		public override int GetHashCode()
+		{
+			var hashCode = 681758273;
+			hashCode = hashCode * -1521134295 + EqualityComparer<Vector3>.Default.GetHashCode(Column1);
+			hashCode = hashCode * -1521134295 + EqualityComparer<Vector3>.Default.GetHashCode(Column2);
+			return hashCode;
+		}
+
+		public static Matrix3x2 Multiply(in Matrix3x2 a, in Matrix3x2 b)
 			=> new Matrix3x2
 			(
 				a.M11 * b.M11 + a.M12 * b.M21, a.M11 * b.M12 + a.M12 * b.M22,
 				a.M21 * b.M11 + a.M22 * b.M21, a.M21 * b.M12 + a.M22 * b.M22,
-				a.M31 * b.M11 + a.M32 * b.M31, a.M11 * b.M32 + a.M12 * b.M22
+				a.M31 * b.M11 + a.M32 * b.M21 + b.M31, a.M31 * b.M12 + a.M32 * b.M22 + b.M32
 			);
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static Matrix3x2 operator *(in Matrix3x2 a, in Matrix3x2 b) => Multiply(a, b);
 	}
 }

@@ -1,13 +1,15 @@
 ﻿using SolidSharp.Expressions;
+using System;
+using System.Collections.Generic;
 
 namespace SolidSharp.Vectors
 {
-	public readonly struct Vector2
-    {
+	public readonly struct Vector2 : IEquatable<Vector2>
+	{
 		public SymbolicExpression X { get; }
 		public SymbolicExpression Y { get; }
 
-		public Vector2(SymbolicExpression x, SymbolicExpression y) : this()
+		public Vector2(SymbolicExpression x, SymbolicExpression y)
 		{
 			X = x;
 			Y = y;
@@ -21,6 +23,21 @@ namespace SolidSharp.Vectors
 
 		public static SymbolicExpression Dot(in Vector2 a, in Vector2 b)
 			=> a.X * b.X + a.Y * b.Y;
+
+		public override bool Equals(object obj)
+			=> obj is Vector2 other && Equals(other);
+
+		public bool Equals(Vector2 other)
+			=> EqualityComparer<SymbolicExpression>.Default.Equals(X, other.X)
+			&& EqualityComparer<SymbolicExpression>.Default.Equals(Y, other.Y);
+
+		public override int GetHashCode()
+		{
+			var hashCode = 1861411795;
+			hashCode = hashCode * -1521134295 + EqualityComparer<SymbolicExpression>.Default.GetHashCode(X);
+			hashCode = hashCode * -1521134295 + EqualityComparer<SymbolicExpression>.Default.GetHashCode(Y);
+			return hashCode;
+		}
 
 		public static Vector2 operator *(in Vector2 a, in Matrix3x2 b)
 			=> new Vector2

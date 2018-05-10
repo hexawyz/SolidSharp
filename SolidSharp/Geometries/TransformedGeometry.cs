@@ -18,7 +18,7 @@ namespace SolidSharp.Geometries
 
 		public override SymbolicEquationSystem GetInteriorEquation(Vector3 v)
 		{
-			var transformed = v * _transformation.Inverse();
+			var transformed = v * _transformation.Invert();
 
 			return WrappedGeometry.GetInteriorEquation(transformed);
 		}

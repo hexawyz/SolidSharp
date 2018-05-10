@@ -633,7 +633,30 @@ namespace SolidSharp.Expressions
 
 		public static SymbolicExpression TrySimplifySin(SymbolicExpression x)
 		{
-			if (x.IsZero() || x.Equals(Pi)) return Zero;
+			if (TrySimplifyDivision(x, Pi) is SymbolicExpression n)
+			{
+				if (n.IsNumber()) return Zero; // sin(n * π) => 0
+
+				if (n.IsDivision())
+				{
+					var op = (BinaryOperationExpression)n;
+
+					if (op.FirstOperand.IsNumber() && op.SecondOperand.IsNumber())
+					{
+						long p = op.FirstOperand.GetValue();
+						long q = op.SecondOperand.GetValue();
+
+						if (p == 1 && q == 2)
+						{
+							return One;
+						}
+						else if (p == 3 && q == 2)
+						{
+							return MinusOne;
+						}
+					}
+				}
+			}
 
 			return null;
 		}

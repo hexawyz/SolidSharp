@@ -83,6 +83,15 @@ namespace SolidSharp.Expressions
 				return a - b.GetOperand();
 			}
 
+			// Divisions
+			if (a.IsDivision() && b.IsDivision()) // x / y + z / w => (x * w + z * y) / (y * w)
+			{
+				var op1 = (BinaryOperationExpression)a;
+				var op2 = (BinaryOperationExpression)b;
+
+				return (op1.FirstOperand * op2.SecondOperand + op2.FirstOperand * op1.SecondOperand) / (op1.SecondOperand * op2.SecondOperand);
+			}
+
 			// Addition merging
 			if (a.IsAddition() && b.IsAddition()) // (x₁ + x₂ + … xₙ) + (y₁ + y₂ + … yₙ) => x₁ + x₂ + … xₙ + y₁ + y₂ + … yₙ
 			{
@@ -148,7 +157,7 @@ namespace SolidSharp.Expressions
 				}
 			}
 			while (i < builder.Count);
-			
+
 			if (builder.Count == 1)
 			{
 				return builder[0];
@@ -327,7 +336,7 @@ namespace SolidSharp.Expressions
 			if (operands.IsDefaultOrEmpty || operands.Length < 2) throw new ArgumentException();
 
 			if (operands.Length == 2) return operands[0] * operands[1];
-			
+
 			var builder = SortExpressions(operands);
 
 			int i = 1;
@@ -348,7 +357,7 @@ namespace SolidSharp.Expressions
 				}
 			}
 			while (i < builder.Count);
-			
+
 			if (builder.Count == 1)
 			{
 				return builder[0];
@@ -380,25 +389,38 @@ namespace SolidSharp.Expressions
 				return a;
 			}
 
-			if (a.Kind == b.Kind) // Handle very trivial simplifications
+			// Handle very trivial simplifications
+			if (a.IsNegation() && b.IsNegation())
 			{
-				if (a.IsConstant() && a.Equals(b))
-				{
-					return One;
-				}
+				return -(a.GetOperand() / b.GetOperand());
+			}
 
-				// TODO: To optimize away x/x in the general case, we need to assert that x is not null… (Assertions are needed !)
+			if (a.IsConstant() && a.Equals(b)) // x ≠ 0, x / x => 1
+			{
+				return One;
+			}
 
-				// Try to simplify numeric fractions
-				if (a.IsNumber() && TrySimplifyFraction(a.GetValue(), b.GetValue()) is SymbolicExpression result)
+			// TODO: To optimize away x/x in the general case, we need to assert that x is not null… (Assertions are needed !)
+
+			// Try to simplify numeric fractions
+			if (a.IsNumber() && b.IsNumber())
+			{
+				if (TrySimplifyFraction(a.GetValue(), b.GetValue()) is SymbolicExpression result)
 				{
 					return result;
 				}
-	
 			}
-			else if (a.IsZero() && b.IsConstant()) // y ≠ 0, x / y => 0
+
+			if (a.IsZero() && b.IsConstant()) // y ≠ 0, x / y => 0
 			{
 				return Zero;
+			}
+
+			// x ≠ 0, -(x/x) => -1
+			if (a.IsConstant() && b.IsNegation() && a.Equals(b.GetOperand()) ||
+				b.IsConstant() && a.IsNegation() && a.GetOperand().Equals(b))
+			{
+				return MinusOne;
 			}
 
 			// Power merging
@@ -454,44 +476,161 @@ namespace SolidSharp.Expressions
 				return a * op2.SecondOperand / op2.FirstOperand;
 			}
 
-			// Try propagate the division inside the multiplication (That can simplify some expressions)
-			if (a.IsMultiplication())
+			// Try propagate the division inside additions (That can simplify some expressions)
+			if (a.IsAddition())
 			{
-				if (a.IsBinaryOperation())
-				{
-					var op1 = (BinaryOperationExpression)a;
-
-					var da = TrySimplifyDivision(op1.FirstOperand, b);
-					var db = TrySimplifyDivision(op1.SecondOperand, b);
-
-					if (!(da is null && db is null))
-					{
-						return (da ?? op1.FirstOperand) * (db ?? op1.SecondOperand);
-					}
-				}
-				else
-				{
-					var operands = a.GetOperands().ToBuilder();
-					bool mutated = false;
-
-					for (int i = 0; i < operands.Count; i++)
-					{
-						var d = TrySimplifyDivision(operands[i], b);
-
-						if (!(d is null))
-						{
-							operands[i] = d;
-							mutated = true;
-						}
-					}
-
-					if (mutated)
-					{
-						return SymbolicExpression.Multiply(operands.ToImmutableArray());
-					}
-				}
+				if (TrySimplifyAdditionDivision(a, b) is SymbolicExpression result) return result;
+			}
+			// TODO: Improve division propagation in multiplications
+			// Try propagate the division inside the multiplication (That can simplify some expressions)
+			else if (a.IsMultiplication())
+			{
+				if (TrySimplifyMultiplicationDivision(a, b) is SymbolicExpression result) return result;
+			}
+			else if (b.IsMultiplication())
+			{
+				// TODO: This case should be handled too…
+				// The method should be like TryDivide(TopFactors[], BottomFactors[])…
 			}
 
+			return null;
+		}
+
+		private static SymbolicExpression TrySimplifyAdditionDivision(SymbolicExpression a, SymbolicExpression b)
+		{
+			// (x + y + z) / w = x/w + y/w + z/w
+			// Simplify the division if at least one of x, y, z (etc.) is simplified.
+
+			if (a.IsBinaryOperation())
+			{
+				// For basic binary additions, the process is quite easy…
+
+				var op1 = (BinaryOperationExpression)a;
+
+				var da = TrySimplifyDivision(op1.FirstOperand, b);
+				var db = TrySimplifyDivision(op1.SecondOperand, b);
+
+				if (!(da is null && db is null))
+				{
+					return (da ?? (op1.FirstOperand / b)) + (db ?? (op1.SecondOperand / b));
+				}
+			}
+			else
+			{
+				// For n-ary additions, it is a bit more contrived:
+				// We have to divide operands between the group of those that were succesfully mutated, and those who weren't.
+				// The result will be of the form X + (Y / Q), where X is the sum of all operands that were divided by Q,
+				// and Y is the sum of all the operands that did not (yet) get divided by Q.
+				// If X is empty, the method returns null, but Y can contain any number of operands. (0 to n)
+
+				var unmodifiedOperands = ImmutableArray.CreateBuilder<SymbolicExpression>();
+				var simplifiedOperands = ImmutableArray.CreateBuilder<SymbolicExpression>();
+
+				foreach (var operand in a.GetOperands())
+				{
+					var d = TrySimplifyDivision(operand, b);
+
+					if (d is null)
+					{
+						unmodifiedOperands.Add(operand);
+					}
+					else
+					{
+						simplifiedOperands.Add(d);
+					}
+				}
+
+				if (simplifiedOperands.Count > 0)
+				{
+					SymbolicExpression firstOperand;
+
+					if (simplifiedOperands.Count == 1)
+					{
+						firstOperand = simplifiedOperands[0];
+					}
+					else if (simplifiedOperands.Count == 2)
+					{
+						firstOperand = SymbolicExpression.Add(simplifiedOperands[0], simplifiedOperands[1]);
+					}
+					else
+					{
+						firstOperand = SymbolicExpression.Add(simplifiedOperands.ToImmutable());
+					}
+
+					if (unmodifiedOperands.Count == 0)
+					{
+						return firstOperand;
+					}
+
+					SymbolicExpression secondOperand;
+
+					if (unmodifiedOperands.Count == 1)
+					{
+						secondOperand = new BinaryOperationExpression(BinaryOperator.Division, unmodifiedOperands[0], b);
+					}
+					else if (unmodifiedOperands.Count == 2)
+					{
+						secondOperand = new BinaryOperationExpression(BinaryOperator.Division, new BinaryOperationExpression(BinaryOperator.Addition, unmodifiedOperands[0], unmodifiedOperands[1]), b);
+					}
+					else
+					{
+						secondOperand = new BinaryOperationExpression(BinaryOperator.Division, new VariadicOperationExpression(VariadicOperator.Addition, unmodifiedOperands.ToImmutable()), b);
+					}
+
+					return firstOperand + secondOperand;
+				}
+			}
+			return null;
+		}
+
+		private static SymbolicExpression TrySimplifyMultiplicationDivision(SymbolicExpression a, SymbolicExpression b)
+		{
+			// (x * y * z) / w = (x/w) * y * z = x * (y/w) * z = x * y * (z/w)
+			// Simplify the division if any of x, y, z (etc.) is simplified.
+
+			if (a.IsBinaryOperation())
+			{
+				// For basic binary multiplications, the process is quite easy…
+
+				var op1 = (BinaryOperationExpression)a;
+
+				var da = TrySimplifyDivision(op1.FirstOperand, b);
+				var db = TrySimplifyDivision(op1.SecondOperand, b);
+
+				if (!(da is null && db is null))
+				{
+					return (da ?? op1.FirstOperand) * (db ?? op1.SecondOperand);
+				}
+			}
+			else
+			{
+				// For n-ary multiplications, the process is more complicated.
+				// The current version may not work correctly in the general case,
+				// as it won't really handle anything other than division by a number or constant.
+
+				// Cases such as (x * y * z) / (x * z) => y should be handled, but they are lileky not for now.
+
+				// TODO: improve.
+
+				var operands = a.GetOperands();
+				bool mutated = false;
+
+				for (int i = 0; i < operands.Length; i++)
+				{
+					var d = TrySimplifyDivision(operands[i], b);
+
+					if (!(d is null))
+					{
+						operands = operands.SetItem(i, d);
+						mutated = true;
+					}
+				}
+
+				if (mutated)
+				{
+					return SymbolicExpression.Multiply(operands);
+				}
+			}
 			return null;
 		}
 
@@ -504,10 +643,23 @@ namespace SolidSharp.Expressions
 
 			if (gcd > 1)
 			{
-				return N(v1 / gcd) / N(v2 / gcd);
+				v1 /= gcd;
+				v2 /= gcd;
 			}
 
-			return null;
+			if (v2 == 1) return N(v1);
+
+			long n = v1 > v2 ?
+				Math.DivRem(v1, v2, out v1) :
+				0;
+
+			var fraction = new BinaryOperationExpression(BinaryOperator.Division, N(v1), N(v2));
+
+			return n > 0 || gcd > 1 ?
+				n > 0 ?
+					N(n) + fraction :
+					fraction :
+				null;
 		}
 
 		public static SymbolicExpression TrySimplifyPower(SymbolicExpression a, SymbolicExpression b)

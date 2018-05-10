@@ -165,19 +165,26 @@ namespace SolidSharp.Tests.Expressions
 		[InlineData(55, 867)]
 		[InlineData(49, 32)]
 		[InlineData(3, 37)]
-		public void FractionsShouldNeutralize(int x, int y)
+		[InlineData(1, 4)]
+		[InlineData(1, 3)]
+		[InlineData(1, 2)]
+		[InlineData(2, 3)]
+		public void OppositeFractionsShouldNeutralize(int x, int y)
 		{
 			Assert.Equal(N(1), (N(x) / N(y)) * (N(y) / N(x)));
 			Assert.Equal(N(1), (N(y) / N(x)) * (N(x) / N(y)));
 		}
 
 		[Theory]
-		[InlineData(1, 5, 2, 10)]
-		[InlineData(1, 3, 2, 6)]
-		[InlineData(1, 7, 3, 21)]
-		public void FractionsShouldSimplify(int pa, int qa, int pb, int qb)
+		[InlineData(0, 1, 5, 2, 10)]
+		[InlineData(0, 1, 3, 2, 6)]
+		[InlineData(0, 1, 7, 3, 21)]
+		[InlineData(1, 1, 5, 12, 10)]
+		[InlineData(2, 1, 3, 14, 6)]
+		[InlineData(1, 1, 21, 22, 21)]
+		public void FractionsShouldSimplify(int nExpected, int pExpected, int qExpected, int pInitial, int qInitial)
 		{
-			Assert.Equal(N(pa) / N(qa), N(pb) / N(qb));
+			Assert.Equal(N(nExpected) + N(pExpected) / N(qExpected), N(pInitial) / N(qInitial));
 		}
 
 		[Theory]
@@ -262,6 +269,16 @@ namespace SolidSharp.Tests.Expressions
 		public void DecimalNumbersShouldConvertToFractions(decimal number, long numerator, long denominator)
 		{
 			Assert.Equal(N(numerator) / N(denominator), N(number));
+		}
+
+		[Fact]
+		public void DivisionShouldSimplifyAdditions()
+		{
+			var t = Var("𝓉");
+
+			Assert.Equal(1 + t / 2, (2 + t) / 2);
+			Assert.Equal(1 + t + 2 * Pow(t, 2), (2 + 2 * t + 4 * Pow(t, 2)) / 2);
+			Assert.Equal(1 + t + 2 * Pow(t, 2), (Pi + Pi * t + 2 * Pi * Pow(t, 2)) / Pi);
 		}
 
 		[Fact]

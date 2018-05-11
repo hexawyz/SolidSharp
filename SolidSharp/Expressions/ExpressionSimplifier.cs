@@ -10,6 +10,16 @@ namespace SolidSharp.Expressions
 	/// <summary>Provides various methods that can be used to generate simplified expressions.</summary>
 	public static class ExpressionSimplifier
 	{
+		// Well-known values that will be used for trigonometry or in other places.
+		private static readonly SymbolicExpression Half = new BinaryOperationExpression(BinaryOperator.Division, One, 2);
+		private static readonly SymbolicExpression MinusHalf = new BinaryOperationExpression(BinaryOperator.Division, MinusOne, 2);
+		private static readonly SymbolicExpression SquareRootOfTwo = new BinaryOperationExpression(BinaryOperator.Root, 2, 2);
+		private static readonly SymbolicExpression SquareRootOfThree = new BinaryOperationExpression(BinaryOperator.Root, 3, 2);
+		private static readonly SymbolicExpression HalfSquareRootOfThree = new BinaryOperationExpression(BinaryOperator.Division, SquareRootOfThree, 2);
+		private static readonly SymbolicExpression MinusHalfSquareRootOfThree = new BinaryOperationExpression(BinaryOperator.Division, new BinaryOperationExpression(BinaryOperator.Multiplication, MinusOne, SquareRootOfThree), 2);
+		private static readonly SymbolicExpression InverseSquareRootOfTwo = new BinaryOperationExpression(BinaryOperator.Division, 1, new BinaryOperationExpression(BinaryOperator.Root, 2, 2));
+		private static readonly SymbolicExpression MinusInverseSquareRootOfTwo = new BinaryOperationExpression(BinaryOperator.Division, -1, new BinaryOperationExpression(BinaryOperator.Root, 2, 2));
+
 		public static SymbolicExpression TrySimplifyNegation(SymbolicExpression e)
 			=> MinusOne * e;
 
@@ -85,26 +95,6 @@ namespace SolidSharp.Expressions
 			else if (b.IsAddition()) // x + (y₁ + y₂ + … yₙ) => x + y₁ + y₂ + … yₙ
 			{
 				return SymbolicExpression.Add(b.GetOperands().Insert(0, a));
-			}
-
-			if (a.IsSubtraction() && b.IsSubtraction()) // x - y + (z - w) => x + z - (y + w)
-			{
-				var op1 = (BinaryOperationExpression)a;
-				var op2 = (BinaryOperationExpression)b;
-
-				return op1.FirstOperand + op2.FirstOperand - (op1.SecondOperand + op2.SecondOperand);
-			}
-			else if (a.IsSubtraction()) // x - y + z => x + z - y
-			{
-				var op1 = (BinaryOperationExpression)a;
-
-				return op1.FirstOperand + b - op1.SecondOperand;
-			}
-			else if (b.IsAddition()) // x + (y - z) => x + y - z
-			{
-				var op2 = (BinaryOperationExpression)b;
-
-				return a + op2.FirstOperand - op2.SecondOperand;
 			}
 
 			return SortExpressions(ref a, ref b) ?
@@ -404,11 +394,6 @@ namespace SolidSharp.Expressions
 			{
 				if (TrySimplifyAdditionDivision(a, b) is SymbolicExpression result) return result;
 			}
-			else if (a.IsSubtraction())
-			{
-				if (TrySimplifySubtractionDivision(a, b) is SymbolicExpression result) return result;
-			}
-			// TODO: Improve division propagation in multiplications
 			// Try propagate the division inside the multiplication (That can simplify some expressions)
 			else if (a.IsMultiplication() || b.IsMultiplication())
 			{
@@ -524,52 +509,6 @@ namespace SolidSharp.Expressions
 					return firstOperand + secondOperand;
 				}
 			}
-			return null;
-		}
-		
-		// TODO: Stop having subtractions and rely on the addition code instead.
-		private static SymbolicExpression TrySimplifySubtractionDivision(SymbolicExpression a, SymbolicExpression b)
-		{
-			// (x + y + z) / w = x/w + y/w + z/w
-			// Simplify the division if at least one of x, y, z (etc.) is simplified.
-
-			if (a.IsBinaryOperation())
-			{
-				// For basic binary additions, the process is quite easy…
-
-				var op1 = (BinaryOperationExpression)a;
-
-				var da = TrySimplifyDivision(op1.FirstOperand, b);
-				var db = TrySimplifyDivision(op1.SecondOperand, b);
-
-				if (!(da is null && db is null))
-				{
-					// Divisions already have been optimized, so don't go through TrySimplifyDivision again…
-					da = da ?? new BinaryOperationExpression(BinaryOperator.Division, op1.FirstOperand, b);
-					db = db ?? new BinaryOperationExpression(BinaryOperator.Division, op1.SecondOperand, b);
-
-					// Trouble comes if we sum two divisions and fall back here again…
-					if (da.IsDivision() && db.IsDivision())
-					{
-						// Basically, there won't be any problem if the two operands are numeric fractions,
-						// but trouble will follow if we are not careful in other cases.
-
-						// For now, count the number of numeric components of the two divisions.
-						int counter = 0;
-						if (da.GetFirstOperand().IsNumber()) counter++;
-						if (da.GetSecondOperand().IsNumber()) counter++;
-						if (db.GetFirstOperand().IsNumber()) counter++;
-						if (db.GetSecondOperand().IsNumber()) counter++;
-
-						// Let's say that if there are less than 3 numeric components, we can't deal with that expression.
-						// This is likely not perfect, but it should avoid most problems.
-						if (counter < 3) return null;
-					}
-
-					return da - db;
-				}
-			}
-
 			return null;
 		}
 
@@ -817,6 +756,14 @@ namespace SolidSharp.Expressions
 				{
 					return a;
 				}
+				else if (a.IsNumber())
+				{
+					// Return a cached expression for common square roots.
+					if (a.Equals(N(2)))
+					{
+						return SquareRootOfTwo;
+					}
+				}
 				else if (a.IsPower())
 				{
 					var op1 = (BinaryOperationExpression)a;
@@ -881,7 +828,7 @@ namespace SolidSharp.Expressions
 			// We can only work with fractions of π. Thus we need to divide 
 			if (!(x is null))
 			{
-				if (x.IsAddition() || x.IsSubtraction()) // Remove constant part: (N + X) => X
+				if (x.IsAddition()) // Remove constant part: (N + X) => X
 				{
 					var a = x.GetFirstOperand();
 					var b = x.GetSecondOperand();
@@ -910,9 +857,17 @@ namespace SolidSharp.Expressions
 							p = checked(-p);
 						}
 
-						if (p == 1 && q == 2)
+						// Assuming here that fractions have already been simplified.
+						switch (q)
 						{
-							return (c & 1) != 0 ? MinusOne : One;
+							case 2: // p == 1
+								return (c & 1) != 0 ? MinusOne : One;
+							case 3: // p == 1 || p == 2
+								return (c & 1) != 0 ? MinusHalfSquareRootOfThree : HalfSquareRootOfThree;
+							case 4: // p == 1 || p == 3
+								return (c & 1) != 0 ? MinusInverseSquareRootOfTwo : InverseSquareRootOfTwo;
+							case 6: // p == 1 || p == 5
+								return (c & 1) != 0 ? MinusHalf : Half;
 						}
 					}
 				}

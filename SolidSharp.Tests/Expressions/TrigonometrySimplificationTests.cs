@@ -12,6 +12,30 @@ namespace SolidSharp.Tests.Expressions
 		}
 
 		[Fact]
+		public void SineOfHalfPiShouldBeOne()
+		{
+			Assert.Equal(One, Sin(Pi / N(2)));
+		}
+
+		[Fact]
+		public void SineOfOneThirdOfPiShouldBeHalfSquareRootOfThree()
+		{
+			Assert.Equal(Sqrt(3) / 2, Sin(Pi / N(3)));
+		}
+
+		[Fact]
+		public void SineOfQuarterPiShouldBeInverseSquareRootOfTwo()
+		{
+			Assert.Equal(N(1) / Sqrt(2), Sin(Pi / N(4)));
+		}
+
+		[Fact]
+		public void SineOfOneSixthOfPiShouldBeHalf()
+		{
+			Assert.Equal(N(1) / N(2), Sin(Pi / N(6)));
+		}
+
+		[Fact]
 		public void CosineOfZeroShouldBeOne()
 		{
 			Assert.Equal(One, Cos(Zero));

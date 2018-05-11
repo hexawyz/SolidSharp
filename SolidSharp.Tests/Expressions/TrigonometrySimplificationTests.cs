@@ -10,7 +10,13 @@ namespace SolidSharp.Tests.Expressions
 		{
 			Assert.Equal(Zero, Sin(Zero));
 		}
-		
+
+		[Fact]
+		public void CosineOfZeroShouldBeOne()
+		{
+			Assert.Equal(One, Cos(Zero));
+		}
+
 		[Theory]
 		[InlineData(-35)]
 		[InlineData(-2)]
@@ -45,6 +51,24 @@ namespace SolidSharp.Tests.Expressions
 			Assert.Equal(expected, Sin(N(n) * (Pi / N(2))));
 			Assert.Equal(expected, Sin((Pi * N(n)) / N(2)));
 			Assert.Equal(expected, Sin(Pi * (N(n) / N(2))));
+		}
+
+		[Theory]
+		[InlineData(-35)]
+		[InlineData(-3)]
+		[InlineData(-1)]
+		[InlineData(1)]
+		[InlineData(3)]
+		[InlineData(5)]
+		[InlineData(7)]
+		[InlineData(23)]
+		[InlineData(6654354191)]
+		public void CosineOfHalfPiMultiplesShouldBeZero(long n)
+		{
+			Assert.Equal(Zero, Cos(N(n) * Pi / N(2)));
+			Assert.Equal(Zero, Cos(N(n) * (Pi / N(2))));
+			Assert.Equal(Zero, Cos((Pi * N(n)) / N(2)));
+			Assert.Equal(Zero, Cos(Pi * (N(n) / N(2))));
 		}
 	}
 }

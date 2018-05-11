@@ -506,6 +506,10 @@ namespace SolidSharp.Expressions
 			{
 				if (TrySimplifyAdditionDivision(a, b) is SymbolicExpression result) return result;
 			}
+			else if (a.IsSubtraction())
+			{
+				if (TrySimplifySubtractionDivision(a, b) is SymbolicExpression result) return result;
+			}
 			// TODO: Improve division propagation in multiplications
 			// Try propagate the division inside the multiplication (That can simplify some expressions)
 			else if (a.IsMultiplication() || b.IsMultiplication())
@@ -532,7 +536,29 @@ namespace SolidSharp.Expressions
 
 				if (!(da is null && db is null))
 				{
-					return (da ?? (op1.FirstOperand / b)) + (db ?? (op1.SecondOperand / b));
+					// Divisions already have been optimized, so don't go through TrySimplifyDivision again…
+					da = da ?? new BinaryOperationExpression(BinaryOperator.Division, op1.FirstOperand, b);
+					db = db ?? new BinaryOperationExpression(BinaryOperator.Division, op1.SecondOperand, b);
+
+					// Trouble comes if we sum two divisions and fall back here again…
+					if (da.IsDivision() && db.IsDivision())
+					{
+						// Basically, there won't be any problem if the two operands are numeric fractions,
+						// but trouble will follow if we are not careful in other cases.
+
+						// For now, count the number of numeric components of the two divisions.
+						int counter = 0;
+						if (da.GetFirstOperand().IsNumber()) counter++;
+						if (da.GetSecondOperand().IsNumber()) counter++;
+						if (db.GetFirstOperand().IsNumber()) counter++;
+						if (db.GetSecondOperand().IsNumber()) counter++;
+
+						// Let's say that if there are less than 3 numeric components, we can't deal with that expression.
+						// This is likely not perfect, but it should avoid most problems.
+						if (counter < 3) return null;
+					}
+
+					return da + db;
 				}
 			}
 			else
@@ -602,6 +628,52 @@ namespace SolidSharp.Expressions
 			}
 			return null;
 		}
+		
+		// TODO: Stop having subtractions and rely on the addition code instead.
+		private static SymbolicExpression TrySimplifySubtractionDivision(SymbolicExpression a, SymbolicExpression b)
+		{
+			// (x + y + z) / w = x/w + y/w + z/w
+			// Simplify the division if at least one of x, y, z (etc.) is simplified.
+
+			if (a.IsBinaryOperation())
+			{
+				// For basic binary additions, the process is quite easy…
+
+				var op1 = (BinaryOperationExpression)a;
+
+				var da = TrySimplifyDivision(op1.FirstOperand, b);
+				var db = TrySimplifyDivision(op1.SecondOperand, b);
+
+				if (!(da is null && db is null))
+				{
+					// Divisions already have been optimized, so don't go through TrySimplifyDivision again…
+					da = da ?? new BinaryOperationExpression(BinaryOperator.Division, op1.FirstOperand, b);
+					db = db ?? new BinaryOperationExpression(BinaryOperator.Division, op1.SecondOperand, b);
+
+					// Trouble comes if we sum two divisions and fall back here again…
+					if (da.IsDivision() && db.IsDivision())
+					{
+						// Basically, there won't be any problem if the two operands are numeric fractions,
+						// but trouble will follow if we are not careful in other cases.
+
+						// For now, count the number of numeric components of the two divisions.
+						int counter = 0;
+						if (da.GetFirstOperand().IsNumber()) counter++;
+						if (da.GetSecondOperand().IsNumber()) counter++;
+						if (db.GetFirstOperand().IsNumber()) counter++;
+						if (db.GetSecondOperand().IsNumber()) counter++;
+
+						// Let's say that if there are less than 3 numeric components, we can't deal with that expression.
+						// This is likely not perfect, but it should avoid most problems.
+						if (counter < 3) return null;
+					}
+
+					return da - db;
+				}
+			}
+
+			return null;
+		}
 
 		private static SymbolicExpression TrySimplifyMultiplicationDivision(SymbolicExpression a, SymbolicExpression b)
 		{
@@ -647,7 +719,7 @@ namespace SolidSharp.Expressions
 
 			return null;
 		}
-		
+
 		private static SymbolicExpression TrySimplifyMultiplicationDivision(ImmutableArray<SymbolicExpression> pItems, ImmutableArray<SymbolicExpression> qItems)
 		{
 			// For n-ary multiplications, the process is more complicated.
@@ -686,7 +758,7 @@ namespace SolidSharp.Expressions
 						else
 						{
 							pBuilder.Capacity = 1;
-							pBuilder[0] = m;
+							pBuilder.Add(m);
 						}
 
 						j = i = 0;
@@ -937,5 +1009,8 @@ namespace SolidSharp.Expressions
 
 			return null;
 		}
+
+		public static SymbolicExpression TrySimplifyCos(SymbolicExpression x)
+			=> TrySimplifySin(x + HalfPi); // That looks pretty dumb, but it should do the trick if everything is wired up properly.
 	}
 }

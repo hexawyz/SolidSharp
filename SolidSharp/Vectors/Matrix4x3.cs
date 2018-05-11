@@ -1,7 +1,6 @@
 ﻿using SolidSharp.Expressions;
 using System;
-using System.Collections.Generic;
-using System.Text;
+using static SolidSharp.Expressions.SymbolicMath;
 
 namespace SolidSharp.Vectors
 {
@@ -11,7 +10,7 @@ namespace SolidSharp.Vectors
 	/// The data is stored in column major order, thus using three column <see cref="Vector4"/>.
 	/// </remarks>
 	public readonly struct Matrix4x3
-    {
+	{
 		public Vector4 Column1 { get; }
 		public Vector4 Column2 { get; }
 		public Vector4 Column3 { get; }
@@ -49,8 +48,103 @@ namespace SolidSharp.Vectors
 		{
 		}
 
-		public SymbolicExpression ComputeDeterminant() => throw new NotImplementedException();
+		public static Matrix4x3 Scale(SymbolicExpression s)
+			=> new Matrix4x3
+			(
+				s, 0, 0,
+				0, s, 0,
+				0, 0, s,
+				0, 0, 0
+			);
 
-		public Matrix4x3 Invert() => throw new NotImplementedException();
+		public static Matrix4x3 Scale(Vector3 s)
+			=> new Matrix4x3
+			(
+				s.X, 0, 0,
+				0, s.Y, 0,
+				0, 0, s.Z,
+				0, 0, 0
+			);
+
+		public static Matrix4x3 Scale(SymbolicExpression scaleX, SymbolicExpression scaleY, SymbolicExpression scaleZ)
+			=> new Matrix4x3
+			(
+				scaleX, 0, 0,
+				0, scaleY, 0,
+				0, 0, scaleZ,
+				0, 0, 0
+			);
+
+		public static Matrix4x3 Translate(Vector3 t)
+			=> new Matrix4x3
+			(
+				1, 0, 0,
+				0, 1, 0,
+				0, 0, 1,
+				t.X, t.Y, t.Z
+			);
+
+		public static Matrix4x3 Translate(SymbolicExpression translateX, SymbolicExpression translateY, SymbolicExpression translateZ)
+			=> new Matrix4x3
+			(
+				1, 0, 0,
+				0, 1, 0,
+				0, 0, 1,
+				translateX, translateY, translateZ
+			);
+
+		public static Matrix4x3 RotateX(SymbolicExpression angle)
+		{
+			var cos = Cos(angle);
+			var sin = Sin(angle);
+
+			return new Matrix4x3
+			(
+				1, 0, 0,
+				0, cos, sin,
+				0, -sin, cos,
+				0, 0, 0
+			);
+		}
+
+		public static Matrix4x3 RotateY(SymbolicExpression angle)
+		{
+			var cos = Cos(angle);
+			var sin = Sin(angle);
+
+			return new Matrix4x3
+			(
+				cos, 0, -sin,
+				0, 1, 0,
+				sin, 0, cos,
+				0, 0, 0
+			);
+		}
+
+		public static Matrix4x3 RotateZ(SymbolicExpression angle)
+		{
+			var cos = Cos(angle);
+			var sin = Sin(angle);
+
+			return new Matrix4x3
+			(
+				cos, sin, 0,
+				-sin, cos, 0,
+				0, 0, 1,
+				0, 0, 0
+			);
+		}
+
+		public SymbolicExpression Determinant
+			=> M11 * M22 * M33
+			 + M12 * M23 * M31
+			 + M13 * M21 * M32
+			 - M13 * M22 * M31
+			 - M12 * M21 * M33
+			 - M11 * M23 * M32;
+
+		public Matrix4x3 Invert()
+			// It's easy, we just have to get the determinant, and then… 😭
+			=> throw new NotImplementedException();
 	}
 }

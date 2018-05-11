@@ -7,6 +7,9 @@ namespace SolidSharp.Expressions
 		public static SymbolicExpression Pi => ConstantExpression.Pi;
 		public static SymbolicExpression E => ConstantExpression.E;
 
+		public static SymbolicExpression HalfPi => Pi / N(2);
+		public static SymbolicExpression QuarterPi => Pi / N(4);
+
 		public static SymbolicExpression Zero => NumberExpression.Zero;
 		public static SymbolicExpression One => NumberExpression.One;
 		public static SymbolicExpression MinusOne => NumberExpression.MinusOne;
@@ -48,7 +51,8 @@ namespace SolidSharp.Expressions
 			?? new UnaryOperationExpression(UnaryOperator.Sin, x);
 
 		public static SymbolicExpression Cos(SymbolicExpression x)
-			=> new UnaryOperationExpression(UnaryOperator.Cos, x);
+			=> ExpressionSimplifier.TrySimplifyCos(x)
+			?? new UnaryOperationExpression(UnaryOperator.Cos, x);
 
 		public static SymbolicExpression Tan(SymbolicExpression x)
 			=> new UnaryOperationExpression(UnaryOperator.Tan, x);

@@ -104,12 +104,17 @@ namespace SolidSharp.Vectors
 			);
 
 		public static Matrix3x2 Rotate(SymbolicExpression angle)
-			=> new Matrix3x2
+		{
+			var cos = Cos(angle);
+			var sin = Sin(angle);
+
+			return new Matrix3x2
 			(
-				Cos(angle), Sin(angle),
-				-Sin(angle), Cos(angle),
+				cos, sin,
+				-sin, cos,
 				0, 0
 			);
+		}
 
 		public override bool Equals(object obj)
 			=> obj is Matrix3x2 other && Equals(other);

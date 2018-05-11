@@ -36,6 +36,27 @@ namespace SolidSharp.Tests.Expressions
 		[Theory]
 		[InlineData(-35)]
 		[InlineData(-3)]
+		[InlineData(-2)]
+		[InlineData(-1)]
+		[InlineData(0)]
+		[InlineData(1)]
+		[InlineData(2)]
+		[InlineData(7)]
+		[InlineData(8)]
+		[InlineData(22)]
+		[InlineData(7547261)]
+		[InlineData(6654354190)]
+		public void CosineOfPiMultiplesShouldBeOneOrMinusOne(long n)
+		{
+			var expected = (n & 1) != 0 ? MinusOne : One;
+
+			Assert.Equal(expected, Cos(n * Pi));
+			Assert.Equal(expected, Cos(Pi * n));
+		}
+
+		[Theory]
+		[InlineData(-35)]
+		[InlineData(-3)]
 		[InlineData(-1)]
 		[InlineData(1)]
 		[InlineData(3)]

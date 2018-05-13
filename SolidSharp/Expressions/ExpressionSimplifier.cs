@@ -713,26 +713,53 @@ namespace SolidSharp.Expressions
 
 		public static SymbolicExpression TrySimplifyPower(SymbolicExpression a, SymbolicExpression b)
 		{
+			if (b.IsZero()) // x⁰ => 1
+			{
+				// NB: 0⁰ is supposed to be undefined in the general case.
+				// Only simplify the exp ression if we can guarantee that x is non-zero.
+				if (a.IsNumber() && !a.IsZero())
+				{
+					return 1;
+				}
+			}
+			else if (b.IsOne()) // x¹ => x
+			{
+				return a;
+			}
+
+			if (a.IsMultiplication()) // (xy)ⁿ => xⁿyⁿ
+			{
+				if (a.IsBinaryOperation())
+				{
+					return Pow(a.GetFirstOperand(), b) * Pow(a.GetSecondOperand(), b);
+				}
+				else
+				{
+					return SymbolicExpression.Multiply(ImmutableArray.CreateRange(a.GetOperands(), o => Pow(o, b)));
+				}
+			}
+			else if (a.IsDivision()) // (x/y)ⁿ => xⁿ/yⁿ
+			{
+				return Pow(a.GetFirstOperand(), b) / Pow(a.GetSecondOperand(), b);
+			}
+			else if (a.IsRoot()) // root(x, n)ⁿ => x
+			{
+				if (a.GetSecondOperand().IsNumber() && a.GetSecondOperand().Equals(b))
+				{
+					return a.GetFirstOperand();
+				}
+			}
+
 			if (b.IsNumber())
 			{
 				var nb = b.GetValue();
 
-				if (nb == 0) // x⁰ => 1
+				if (a.IsAbsoluteValue())
 				{
-					// NB: 0⁰ is supposed to be undefined in the general case.
-					// Only simplify the expression if we can guarantee that x is non-zero.
-					if (a.IsNumber() && !a.IsZero())
+					if ((nb & 1) == 0) // |x|²ⁿ => x²ⁿ
 					{
-						return 1;
+						return Pow(a.GetOperand(), b);
 					}
-				}
-				else if (nb == 1) // x¹ => x
-				{
-					return a;
-				}
-				else if (a.IsAbsoluteValue() && (nb & 1) == 0) // |x|²ⁿ => x²ⁿ
-				{
-					return Pow(a.GetOperand(), b);
 				}
 				else if (a.IsNumber())
 				{
@@ -745,31 +772,6 @@ namespace SolidSharp.Expressions
 						if (na < 0 && (nb & 1) == 0)
 						{
 							return new BinaryOperationExpression(BinaryOperator.Power, Abs(a), b);
-						}
-					}
-				}
-				else if (a.IsMultiplication()) // (xy)ⁿ => xⁿyⁿ
-				{
-					if (a.IsBinaryOperation())
-					{
-						return Pow(a.GetFirstOperand(), b) * Pow(a.GetSecondOperand(), b);
-					}
-					else
-					{
-						return SymbolicExpression.Multiply(ImmutableArray.CreateRange(a.GetOperands(), o => Pow(o, b)));
-					}
-				}
-				else if (a.IsRoot())
-				{
-					var op1 = (BinaryOperationExpression)a;
-
-					if (op1.SecondOperand.IsNumber())
-					{
-						var na = op1.SecondOperand.GetValue();
-
-						if (na == nb)
-						{
-							return op1.FirstOperand;
 						}
 					}
 				}
@@ -861,7 +863,7 @@ namespace SolidSharp.Expressions
 		public static SymbolicExpression TrySimplifySin(SymbolicExpression x)
 		{
 			long c = 0;
-			
+
 			x = TrySimplifyDivision(x, Pi);
 
 			// We can only work with fractions of π. Thus we need to divide 

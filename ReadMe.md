@@ -83,6 +83,15 @@ Substitute variables with other expressions:
 replace(2 * x + pow(x, 2), x, 98)
 ````
 ````
+replace(2 * x + pow(x, 2), x, n(1) / n(2))
+````
+````
+replace(2 * x + pow(x, 2), x, n(2) / n(3))
+````
+````
+replace(replace(2 * x + pow(x, 2), x, 3 * x), x, n(2)/n(3))
+````
+````
 replace(3 * pow(x, 2) + 2 * pow(y, 2), y, 2 * x)
 ````
 ````

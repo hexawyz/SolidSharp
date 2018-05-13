@@ -17,7 +17,7 @@ namespace SolidSharp.Tests.Expressions
 		}
 
 		[Fact]
-		public void PowersShouldSum()
+		public void ExponentsShouldSum()
 		{
 			var t = Var("𝓉");
 			var x = Var("𝓍");
@@ -27,7 +27,7 @@ namespace SolidSharp.Tests.Expressions
 		}
 
 		[Fact]
-		public void PowersShouldSubstract()
+		public void ExponentsShouldSubstract()
 		{
 			var t = Var("𝓉");
 			var x = Var("𝓍");
@@ -372,6 +372,15 @@ namespace SolidSharp.Tests.Expressions
 		{
 			Assert.Equal(N(1) / N(2), N(1) - N(1) / N(2));
 			Assert.Equal(-N(1) / N(2), -N(1) + N(1) / N(2));
+		}
+
+		[Fact]
+		public void ExponentsShouldPropagateIntoDivisions()
+		{
+			var x = Var("𝓍");
+			var y = Var("𝓎");
+
+			Assert.Equal(Pow(x, 2) / Pow(y, 2), Pow(x / y, 2));
 		}
 	}
 }

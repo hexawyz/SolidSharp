@@ -6,6 +6,7 @@ namespace SolidSharp.Expressions
 	{
 		public static SymbolicExpression Pi => ConstantExpression.Pi;
 		public static SymbolicExpression E => ConstantExpression.E;
+		public static SymbolicExpression I => ConstantExpression.I;
 
 		public static SymbolicExpression HalfPi => Pi / N(2);
 		public static SymbolicExpression QuarterPi => Pi / N(4);

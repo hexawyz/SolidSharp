@@ -797,12 +797,34 @@ namespace SolidSharp.Expressions
 				{
 					return a;
 				}
-				else if (a.IsNumber())
+				else if (nb == 2 && a.IsNumber())
 				{
 					// Return a cached expression for common square roots.
-					if (a.Equals(N(2)))
+					long na = a.GetValue();
+
+					switch (a.GetValue())
 					{
-						return SquareRootOfTwo;
+						case 0: return Zero;
+						case 1: return One;
+						case 2: return SquareRootOfTwo;
+						case 3: return SquareRootOfThree;
+						case -1: return I;
+						case -2: return SquareRootOfTwo * I;
+						default:
+							long sq = Math.Abs(na);
+							long sqrt = MathUtil.IntSqrt(sq);
+
+							if (sqrt * sqrt == sq)
+							{
+								return na >= 0 ?
+									N(sqrt) :
+									I * N(sqrt);
+							}
+							else if (na < 0)
+							{
+								return I * Sqrt(sq);
+							}
+							break;
 					}
 				}
 				else if (a.IsPower())

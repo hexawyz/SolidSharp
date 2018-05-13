@@ -382,5 +382,76 @@ namespace SolidSharp.Tests.Expressions
 
 			Assert.Equal(Pow(x, 2) / Pow(y, 2), Pow(x / y, 2));
 		}
+
+		[Theory]
+		[InlineData(0)]
+		[InlineData(1)] // Prime number
+		[InlineData(2)] // Prime number
+		[InlineData(3)] // Prime number
+		[InlineData(4)]
+		[InlineData(5)] // Prime number
+		[InlineData(6)]
+		[InlineData(7)] // Prime number
+		[InlineData(8)]
+		[InlineData(9)]
+		[InlineData(32)]
+		[InlineData(33)]
+		[InlineData(81)]
+		[InlineData(10)]
+		[InlineData(100)]
+		[InlineData(1000)]
+		[InlineData(1000000)]
+		[InlineData(174)]
+		[InlineData(1321)] // Prime number
+		[InlineData(691)] // Prime number
+		[InlineData(7873)] // Prime number
+		public void SquareRootOfPositiveSquareShouldCompute(int number)
+		{
+			Assert.Equal(N(number), Sqrt(N((long)number * number)));
+		}
+
+		[Theory]
+		[InlineData(2, 1, 2)] // Sqrt(2) does not simplify
+		[InlineData(3, 1, 3)] // Sqrt(3) does not simplify
+		[InlineData(6, 1, 6)] // Sqrt(6) does not simplify
+		//[InlineData(12, 2, 3)] // Sqrt(12) does simplify to 2 * Sqrt(3)
+		//[InlineData(50, 5, 2)] // Sqrt(50) does simplify to 5 * Sqrt(2)
+		public void SquareRootOfPositiveNumberShouldSimplify(int number, int simplified, int remaining)
+		{
+			Assert.Equal(N(simplified) * Sqrt(N(remaining)), Sqrt(N(number)));
+		}
+
+		[Fact]
+		public void SquareRootOfMinusOneIsImagianry()
+		{
+			Assert.Equal(I, Sqrt(-1));
+		}
+
+		[Theory]
+		[InlineData(0)]
+		[InlineData(1)] // Prime number
+		[InlineData(2)] // Prime number
+		[InlineData(3)] // Prime number
+		[InlineData(4)]
+		[InlineData(5)] // Prime number
+		[InlineData(6)]
+		[InlineData(7)] // Prime number
+		[InlineData(8)]
+		[InlineData(9)]
+		[InlineData(32)]
+		[InlineData(33)]
+		[InlineData(81)]
+		[InlineData(10)]
+		[InlineData(100)]
+		[InlineData(1000)]
+		[InlineData(1000000)]
+		[InlineData(174)]
+		[InlineData(1321)] // Prime number
+		[InlineData(691)] // Prime number
+		[InlineData(7873)] // Prime number
+		public void SquareRootOfNegativeSquareShouldComputeAndToImaginary(int number)
+		{
+			Assert.Equal(N(number) * I, Sqrt(-N((long)number * number)));
+		}
 	}
 }

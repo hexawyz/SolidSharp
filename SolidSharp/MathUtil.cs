@@ -62,5 +62,34 @@ namespace SolidSharp
 			a = b;
 			b = c;
 		}
+
+		public static long IntSqrt(long x)
+			=> unchecked((long)IntSqrt(checked((ulong)x)));
+
+		public static ulong IntSqrt(ulong x)
+		{
+			if (x < 2) return x;
+
+			int shiftCount = 2;
+			while ((x >> shiftCount) != 0)
+			{
+				shiftCount += 2;
+			}
+
+			ulong result = 0;
+			while (shiftCount >= 0)
+			{
+				ulong next = (result <<= 1) + 1;
+
+				if (next * next <= (x >> shiftCount))
+				{
+					result = next;
+				}
+
+				shiftCount -= 2;
+			}
+
+			return result;
+		}
 	}
 }

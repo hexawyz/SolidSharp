@@ -49,7 +49,7 @@ namespace SolidSharp.Expressions
 					case ExpressionKind.Number:
 						return Comparer<long>.Default.Compare(x.GetValue(), y.GetValue());
 					case ExpressionKind.Constant:
-						return Comparer<decimal>.Default.Compare(((ConstantExpression)x).Value, ((ConstantExpression)y).Value);
+						return Comparer<byte>.Default.Compare(((ConstantExpression)x).ConstantSortOrder, ((ConstantExpression)y).ConstantSortOrder);
 					case ExpressionKind.Variable:
 						return StringComparer.Ordinal.Compare(((VariableExpression)x).Name, ((VariableExpression)y).Name);
 				}

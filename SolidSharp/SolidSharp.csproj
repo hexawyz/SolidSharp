@@ -1,8 +1,20 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>latest</LangVersion>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Version">
+    <VersionPrefix>0.1.0</VersionPrefix>
+    <VersionSuffix>alpha</VersionSuffix>
+  </PropertyGroup>
+  
+  <PropertyGroup Label="Package">
+    <Title>Solid♯</Title>
+    <Authors>Fabien Barbier</Authors>
+    <Copyright>Copyright © Fabien Barbier 2018</Copyright>
   </PropertyGroup>
 
   <ItemGroup>

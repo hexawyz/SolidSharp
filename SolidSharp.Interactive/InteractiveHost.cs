@@ -32,6 +32,7 @@ namespace SolidSharp.Interactive
 		public static E e => M.E;
 		public static E pi => M.Pi;
 		public static E π => M.Pi;
+		public static E i => M.I;
 
 		// Mirror of the SymbolicMath.N method
 		public static E n(sbyte value) => M.N(value);

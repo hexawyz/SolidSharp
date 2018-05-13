@@ -7,12 +7,12 @@ using static SolidSharp.Expressions.SymbolicMath;
 namespace SolidSharp.Tests.Expressions
 {
 	public sealed class ExpressionSimplificationTest
-    {
+	{
 		[Fact]
 		public void DoubleNegationShouldBeNegated()
 		{
 			var t = Var("𝓉");
-			
+
 			Assert.Same(t, -(-t));
 		}
 
@@ -22,7 +22,7 @@ namespace SolidSharp.Tests.Expressions
 			var t = Var("𝓉");
 			var x = Var("𝓍");
 			var y = Var("𝓎");
-			
+
 			Assert.Equal(Pow(t, x + y), Pow(t, x) * Pow(t, y));
 		}
 
@@ -32,7 +32,7 @@ namespace SolidSharp.Tests.Expressions
 			var t = Var("𝓉");
 			var x = Var("𝓍");
 			var y = Var("𝓎");
-			
+
 			Assert.Equal(Pow(t, x - y), Pow(t, x) / Pow(t, y));
 		}
 
@@ -43,7 +43,7 @@ namespace SolidSharp.Tests.Expressions
 
 			Assert.Equal(Pow(2, 3 + t), 8 * Pow(2, t));
 			Assert.Equal(Pow(2, 3 + t), Pow(2, t) * 8);
-			
+
 			Assert.Equal(3 * Pow(2, 4 + t), 48 * Pow(2, t));
 			Assert.Equal(3 * Pow(2, 4 + t), Pow(2, t) * 48);
 
@@ -63,7 +63,7 @@ namespace SolidSharp.Tests.Expressions
 			var w = Var("𝓌");
 
 			var expected = SymbolicExpression.Add(ImmutableArray.Create(x, y, z, w));
-			
+
 			Assert.Equal(expected, x + (y + (z + w)));
 			Assert.Equal(expected, x + ((y + z) + w));
 			Assert.Equal(expected, (x + y) + (z + w));
@@ -139,7 +139,7 @@ namespace SolidSharp.Tests.Expressions
 		public void IdentitySubtractionsShouldCancel()
 		{
 			var t = Var("𝓉");
-			
+
 			Assert.Same(Zero, t - t);
 		}
 
@@ -149,7 +149,7 @@ namespace SolidSharp.Tests.Expressions
 			var t = Var("𝓉");
 			var x = Var("𝓍");
 			var y = Var("𝓎");
-			
+
 			Assert.Equal(x - y, x + (-y));
 			Assert.Equal(y - x, (-x) + y);
 			Assert.Same(Zero, t + (-t));
@@ -220,7 +220,7 @@ namespace SolidSharp.Tests.Expressions
 		public void NegativeSquaredShouldBePositive()
 		{
 			var t = Var("𝓉");
-			
+
 			Assert.Equal(t * t, (-t) * (-t));
 		}
 
@@ -286,6 +286,35 @@ namespace SolidSharp.Tests.Expressions
 			var t = Var("𝓉");
 
 			Assert.Same(t, Pow(Root(t, value), value));
+		}
+
+		[Fact]
+		public void SquareOfImaginaryShouldBeMinusOne()
+		{
+			Assert.Same(MinusOne, I * I);
+			Assert.Same(MinusOne, Pow(I, I));
+		}
+
+		[Theory]
+		[InlineData(-4)]
+		[InlineData(-3)]
+		[InlineData(-2)]
+		[InlineData(-1)]
+		[InlineData(0)]
+		[InlineData(1)]
+		[InlineData(2)]
+		[InlineData(3)]
+		[InlineData(777)]
+		[InlineData(-672)]
+		[InlineData(-10)]
+		[InlineData(20)]
+		public void SquareOfImaginaryNumberShouldBeNegativeSquare(long number)
+		{
+			var n = N(number) * I;
+			long sq = -(number * number);
+
+			Assert.Equal(N(sq), n * n);
+			Assert.Equal(N(sq), Pow(n, 2));
 		}
 
 		[Fact]
@@ -364,7 +393,7 @@ namespace SolidSharp.Tests.Expressions
 			var x = Var("𝓍");
 			var y = Var("𝓎");
 
-			Assert.Equal(2*x + 2*y, x + y + x + y);
+			Assert.Equal(2 * x + 2 * y, x + y + x + y);
 		}
 
 		[Fact]
@@ -414,8 +443,8 @@ namespace SolidSharp.Tests.Expressions
 		[InlineData(2, 1, 2)] // Sqrt(2) does not simplify
 		[InlineData(3, 1, 3)] // Sqrt(3) does not simplify
 		[InlineData(6, 1, 6)] // Sqrt(6) does not simplify
-		//[InlineData(12, 2, 3)] // Sqrt(12) does simplify to 2 * Sqrt(3)
-		//[InlineData(50, 5, 2)] // Sqrt(50) does simplify to 5 * Sqrt(2)
+							  //[InlineData(12, 2, 3)] // Sqrt(12) does simplify to 2 * Sqrt(3)
+							  //[InlineData(50, 5, 2)] // Sqrt(50) does simplify to 5 * Sqrt(2)
 		public void SquareRootOfPositiveNumberShouldSimplify(int number, int simplified, int remaining)
 		{
 			Assert.Equal(N(simplified) * Sqrt(N(remaining)), Sqrt(N(number)));

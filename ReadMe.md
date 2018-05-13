@@ -123,6 +123,20 @@ replace(3 * pow(x, 2) + 2 * pow(y, 2), y, 2 * x)
 replace(replace(3 * pow(x, 2) + 2 * pow(y, 2), y, 2 * x), x, 7)
 ````
 
+#### Use imaginary numbers
+
+The constant ````i```` represents the imaginary number ````𝑖````, and you can use it like any other constant.
+
+````
+3 * i
+````
+````
+sqrt(-4)
+````
+````
+16 + pow(4 * i, 2)
+````
+
 #### Control the interactive session
 
 ##### Exit the command line interface

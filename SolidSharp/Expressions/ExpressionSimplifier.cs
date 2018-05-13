@@ -727,6 +727,10 @@ namespace SolidSharp.Expressions
 				return a;
 			}
 
+			if (ReferenceEquals(a, I)) // i² => -1
+			{
+				return MinusOne;
+			}
 			if (a.IsMultiplication()) // (xy)ⁿ => xⁿyⁿ
 			{
 				if (a.IsBinaryOperation())

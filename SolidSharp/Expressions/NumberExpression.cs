@@ -71,7 +71,7 @@ namespace SolidSharp.Expressions
 
 		public override ExpressionKind Kind => ExpressionKind.Number;
 
-		protected internal override byte GetSortOrder() => 0;
+		protected internal override byte GetSortOrder() => SymbolicExpressionComparer.Number;
 
 		protected internal override SymbolicExpression Accept(ExpressionVisitor visitor) => visitor.VisitNumber(this);
 

@@ -35,12 +35,12 @@ namespace SolidSharp.Expressions
 		{
 			switch (Operator)
 			{
-				case BinaryOperator.Addition: return 4;
-				case BinaryOperator.Subtraction: return 5;
-				case BinaryOperator.Multiplication: return 6;
-				case BinaryOperator.Division: return 7;
-				case BinaryOperator.Root: return 8;
-				case BinaryOperator.Power: return 9;
+				case BinaryOperator.Addition: return SymbolicExpressionComparer.Addition;
+				case BinaryOperator.Subtraction: return SymbolicExpressionComparer.Subtraction;
+				case BinaryOperator.Multiplication: return SymbolicExpressionComparer.Multiplication;
+				case BinaryOperator.Division: return SymbolicExpressionComparer.Division;
+				case BinaryOperator.Root: return SymbolicExpressionComparer.Root;
+				case BinaryOperator.Power: return SymbolicExpressionComparer.Power;
 				default: throw new InvalidOperationException();
 			}
 		}

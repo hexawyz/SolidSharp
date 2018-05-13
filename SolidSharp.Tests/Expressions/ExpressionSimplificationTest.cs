@@ -348,5 +348,23 @@ namespace SolidSharp.Tests.Expressions
 			Assert.Equal(t, (Pi * t) / Pi);
 			Assert.Equal(2 * t, (2 * Pi * t) / Pi);
 		}
+
+		[Fact]
+		public void UnorderedAdditionsAndSubtractionsShouldCancel()
+		{
+			var x = Var("𝓍");
+			var y = Var("𝓎");
+
+			Assert.Equal(N(0), x + y - x - y);
+		}
+
+		[Fact]
+		public void UnorderedAdditionsAndSubtractionsShouldMerge()
+		{
+			var x = Var("𝓍");
+			var y = Var("𝓎");
+
+			Assert.Equal(2*x + 2*y, x + y + x + y);
+		}
 	}
 }

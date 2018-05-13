@@ -30,7 +30,7 @@ namespace SolidSharp.Expressions
 		// This is to be used only for commutative operations…
 		private static bool SortExpressions(ref SymbolicExpression a, ref SymbolicExpression b)
 		{
-			if (a.GetSortOrder() > b.GetSortOrder())
+			if (SymbolicExpressionComparer.Default.Compare(a, b) > 0)
 			{
 				MathUtil.Swap(ref a, ref b);
 				return true;
@@ -44,7 +44,7 @@ namespace SolidSharp.Expressions
 		{
 			// Use LINQ to provide a stable sort.
 			var builder = ImmutableArray.CreateBuilder<SymbolicExpression>(operands.Length);
-			builder.AddRange(operands.OrderBy(o => o.GetSortOrder()));
+			builder.AddRange(operands.OrderBy(o => o, SymbolicExpressionComparer.Default));
 			return builder;
 		}
 
@@ -94,6 +94,11 @@ namespace SolidSharp.Expressions
 			else if (b.IsAddition()) // x + (y₁ + y₂ + … yₙ) => x + y₁ + y₂ + … yₙ
 			{
 				return SymbolicExpression.Add(b.GetOperands().Insert(0, a));
+			}
+
+			if (a.Equals(b))
+			{
+				return 2 * a;
 			}
 
 			return SortExpressions(ref a, ref b) ?

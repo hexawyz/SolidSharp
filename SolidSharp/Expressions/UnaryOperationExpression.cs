@@ -29,7 +29,7 @@ namespace SolidSharp.Expressions
 
 		public override ExpressionKind Kind => ExpressionKind.UnaryOperation;
 
-		protected internal override byte GetSortOrder() => 3;
+		protected internal override byte GetSortOrder() => SymbolicExpressionComparer.Unary;
 
 		protected internal override SymbolicExpression Accept(ExpressionVisitor visitor) => visitor.VisitUnaryOperation(this);
 

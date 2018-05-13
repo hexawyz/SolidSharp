@@ -18,7 +18,7 @@ namespace SolidSharp.Expressions
 
 		public override ExpressionKind Kind => ExpressionKind.Variable;
 
-		protected internal override byte GetSortOrder() => 2;
+		protected internal override byte GetSortOrder() => SymbolicExpressionComparer.Variable;
 
 		protected internal override SymbolicExpression Accept(ExpressionVisitor visitor) => visitor.VisitVariable(this);
 

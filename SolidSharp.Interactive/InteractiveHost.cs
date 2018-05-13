@@ -1,6 +1,4 @@
-﻿using SolidSharp.Geometries;
-using SolidSharp.Vectors;
-using System.Threading;
+﻿using SolidSharp.Vectors;
 using E = SolidSharp.Expressions.SymbolicExpression;
 using M = SolidSharp.Expressions.SymbolicMath;
 

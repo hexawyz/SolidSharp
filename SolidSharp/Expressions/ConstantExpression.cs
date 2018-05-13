@@ -23,7 +23,7 @@ namespace SolidSharp.Expressions
 
 		public override ExpressionKind Kind => ExpressionKind.Constant;
 
-		protected internal override byte GetSortOrder() => 1;
+		protected internal override byte GetSortOrder() => SymbolicExpressionComparer.Constant;
 
 		protected internal override SymbolicExpression Accept(ExpressionVisitor visitor) => visitor.VisitConstant(this);
 

@@ -29,7 +29,15 @@ dotnet run -c Release -p SolidSharp.Interactive
 
 ### Things you can try
 
-Output a number:
+#### Output numbers
+
+The ````n```` method is used to convert a .NET numeric value into a ````SymbolicExpression```` that can be used in symbolic computations.
+
+Most of the time, numeric values will be implicitly converted into ````SymbolicExpression```` values.
+However, the C# compiler is unable to proceed to such an implicit conversion with at least some context.
+As such, ````1/2```` is the integer ````0````, while ````n(1)/2````, ````1/n(2)```` and ````n(1)/n(2)```` all represents the simple fraction ````1/2```` (one half).
+
+The most basic feature feature of the CLI is outputing the result of the last expression, as can be seen in the examples below:
 ````
 n(0)
 ````
@@ -37,7 +45,11 @@ n(0)
 n(42)
 ````
 
-Evaluate trigonometric methods:
+#### Evaluate trigonometric methods
+
+A decent CAS is supposed to be able to simplify at least basic trigonometric expressions.
+Well known values of ````sin(x)```` and ````cos(x)```` will be simplified when possible.
+
 ````
 sin(0)
 ````
@@ -48,17 +60,27 @@ sin(pi/2)
 sin(3*π/2)
 ````
 
-Simplify fractions:
+#### Simplify fractions
+
+Simple fractions greater than 1 in absolute value will always be reduced to the form ````N + P/Q````, where ````N````, ````P```` and ````Q```` are all integers.
+
 ````
 n(39)/n(11)
 ````
 
-Declare new symbolic variables:
+#### Declare new symbolic variables
+
+You can define new symbolic variables that can be later reused in expressions:
+
 ````
 var n = var("n"); /* Creates a symbolic variable named n and store it in the C# variable n */
 ````
 
-Use pre-defined variables ````x````, ````y````, ````z```` and ````t````:
+#### Use pre-defined variables ````x````, ````y````, ````z```` and ````t````
+
+The CLI host provides predefined symbolic variables that can be used out-of-the box.
+This allows to quickly generate expressions making use of unknowns, as in the examples below:
+
 ````
 3 * x / 2
 ````
@@ -78,7 +100,10 @@ pow(x, 2) + pow(y, 2)
 n(2) + n(3) * t - n(1)/n(2)
 ````
 
-Substitute variables with other expressions:
+#### Substitute variables with other expressions
+
+This feature can be used to evaluate expressions, replacing variables with numeric values or fractions.
+
 ````
 replace(2 * x + pow(x, 2), x, 98)
 ````
@@ -98,7 +123,19 @@ replace(3 * pow(x, 2) + 2 * pow(y, 2), y, 2 * x)
 replace(replace(3 * pow(x, 2) + 2 * pow(y, 2), y, 2 * x), x, 7)
 ````
 
-Exit the command line interface:
+#### Control the interactive session
+
+##### Exit the command line interface
+
+You can exit the CLI with the traditional Ctrl+C shortcut, or by calling the ````exit```` method.
+
 ````
 exit()
+````
+
+##### Reset the interactive session
+
+Sometimes, you may want to restart with a clean environment. That can be achieved by calling the ````reset```` method.
+````
+reset()
 ````

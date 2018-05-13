@@ -58,6 +58,9 @@ namespace SolidSharp.Expressions.Extensions
 		public static bool IsEvenNumber(this SymbolicExpression e)
 			=> ((IExpression)e).IsEvenNumber;
 
+		public static bool IsSimpleFraction(this SymbolicExpression e)
+			=> ((IExpression)e).IsSimpleFraction;
+
 		public static bool IsZero(this SymbolicExpression e)
 			=> ReferenceEquals(e, NumberExpression.Zero); // This will work because we're making sure that Zero is a singleton.
 

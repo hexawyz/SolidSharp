@@ -50,6 +50,10 @@ namespace SolidSharp.Expressions
 		bool IsOddNumber { get; }
 		/// <summary>Gets a value indicating if the expression represents an even number.</summary>
 		bool IsEvenNumber { get; }
+		
+		/// <summary>Gets a value indicating if the expression represents a simple fraction.</summary>
+		/// <remarks>Simple fractions share similar properties to that of numbers.</remarks>
+		bool IsSimpleFraction { get; }
 
 		/// <summary>Gets a value indicating if the expression represents a variable.</summary>
 		bool IsVariable { get; }

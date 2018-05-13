@@ -366,5 +366,12 @@ namespace SolidSharp.Tests.Expressions
 
 			Assert.Equal(2*x + 2*y, x + y + x + y);
 		}
+
+		[Fact]
+		public void NumbersAndFractionsShouldAdd()
+		{
+			Assert.Equal(N(1) / N(2), N(1) - N(1) / N(2));
+			Assert.Equal(-N(1) / N(2), -N(1) + N(1) / N(2));
+		}
 	}
 }

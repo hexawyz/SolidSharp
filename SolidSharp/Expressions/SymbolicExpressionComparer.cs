@@ -23,27 +23,22 @@ namespace SolidSharp.Expressions
 
 		public int Compare(SymbolicExpression x, SymbolicExpression y)
 		{
-			int result = Comparer<byte>.Default.Compare(x.GetSortOrder(), y.GetSortOrder());
+			var (ux, uy) = (ExpressionSimplifier.UnwrapFactors(x), ExpressionSimplifier.UnwrapFactors(y));
+
+			int result = Comparer<byte>.Default.Compare(ux.Expression.GetSortOrder(), uy.Expression.GetSortOrder());
 
 			if (result == 0)
 			{
-				(x, y) = (UnwrapFactors(x), UnwrapFactors(y));
+				result = CompareUnwrapped(ux.Expression, uy.Expression);
+			}
 
-				result = Comparer<byte>.Default.Compare(x.GetSortOrder(), y.GetSortOrder());
-
-				if (result == 0)
-				{
-					result = CompareUnwrapped(x, y);
-				}
+			if (result == 0)
+			{
+				result = Comparer<long>.Default.Compare(ux.Factor, uy.Factor);
 			}
 
 			return result;
 		}
-
-		private SymbolicExpression UnwrapFactors(SymbolicExpression x)
-			=> x.IsBinaryOperation() && x.IsMultiplication() && x.GetFirstOperand().IsNumber() ?
-				x.GetSecondOperand() :
-				x;
 
 		private static int CompareUnwrapped(SymbolicExpression x, SymbolicExpression y)
 		{

@@ -38,7 +38,10 @@ namespace SolidSharp.Expressions
 				case BinaryOperator.Addition: return SymbolicExpressionComparer.Addition;
 				case BinaryOperator.Subtraction: return SymbolicExpressionComparer.Subtraction;
 				case BinaryOperator.Multiplication: return SymbolicExpressionComparer.Multiplication;
-				case BinaryOperator.Division: return SymbolicExpressionComparer.Division;
+				case BinaryOperator.Division:
+					return FirstOperand.IsNumber() && SecondOperand.IsNumber() ?
+						SymbolicExpressionComparer.Number :
+						SymbolicExpressionComparer.Division;
 				case BinaryOperator.Root: return SymbolicExpressionComparer.Root;
 				case BinaryOperator.Power: return SymbolicExpressionComparer.Power;
 				default: throw new InvalidOperationException();
@@ -145,6 +148,8 @@ namespace SolidSharp.Expressions
 		bool IExpression.IsNegativeNumber => false;
 		bool IExpression.IsOddNumber => false;
 		bool IExpression.IsEvenNumber => false;
+		
+		bool IExpression.IsSimpleFraction => Operator == BinaryOperator.Division && FirstOperand.IsNumber() && SecondOperand.IsNumber();
 
 		bool IExpression.IsVariable => false;
 		bool IExpression.IsConstant => false;

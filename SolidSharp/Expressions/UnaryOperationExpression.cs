@@ -111,6 +111,8 @@ namespace SolidSharp.Expressions
 		bool IExpression.IsOddNumber => false;
 		bool IExpression.IsEvenNumber => false;
 
+		bool IExpression.IsSimpleFraction => false;
+
 		bool IExpression.IsVariable => false;
 		bool IExpression.IsConstant => false;
 

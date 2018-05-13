@@ -19,6 +19,27 @@ namespace SolidSharp.Expressions
 		private static readonly SymbolicExpression InverseSquareRootOfTwo = new BinaryOperationExpression(BinaryOperator.Division, 1, new BinaryOperationExpression(BinaryOperator.Root, 2, 2));
 		private static readonly SymbolicExpression MinusInverseSquareRootOfTwo = new BinaryOperationExpression(BinaryOperator.Division, -1, new BinaryOperationExpression(BinaryOperator.Root, 2, 2));
 
+		public static (long Factor, SymbolicExpression Expression) UnwrapFactors(SymbolicExpression x)
+			=> x.IsMultiplication() && x.GetFirstOperand().IsNumber() ?
+				(x.GetFirstOperand().GetValue(), GetNextFactor(x)) :
+				(1, x);
+
+		private static SymbolicExpression GetNextFactor(SymbolicExpression x)
+		{
+			if (x.IsBinaryOperation()) return x.GetSecondOperand();
+
+			var operands = x.GetOperands();
+
+			if (operands.Length == 3)
+			{
+				return new BinaryOperationExpression(BinaryOperator.Multiplication, operands[1], operands[2]);
+			}
+			else
+			{
+				return new VariadicOperationExpression(VariadicOperator.Multiplication, operands.RemoveAt(0));
+			}
+		}
+
 		public static SymbolicExpression TrySimplifyNegation(SymbolicExpression e)
 			=> MinusOne * e;
 
@@ -57,20 +78,24 @@ namespace SolidSharp.Expressions
 			{
 				return checked(a.GetValue() + b.GetValue());
 			}
-			else if (a.IsBinaryOperation() && b.IsBinaryOperation() && a.IsMultiplication() && b.IsMultiplication() && a.GetFirstOperand().IsNumber() && b.GetFirstOperand().IsNumber() && a.GetSecondOperand().Equals(b.GetSecondOperand()))
+
+			var ua = UnwrapFactors(a);
+			var ub = UnwrapFactors(b);
+
+			if (ua.Expression.Equals(ub.Expression))
 			{
 				// a * x + b * x => (a + b) * x
-				return (a.GetFirstOperand() + b.GetFirstOperand()) * a.GetSecondOperand();
+				return (ua.Factor + ub.Factor) * ua.Expression;
 			}
-			else if (a.IsBinaryOperation() && a.IsMultiplication() && a.GetFirstOperand().IsNumber() && a.GetSecondOperand().Equals(b))
+
+			// Numbers & Fractions (n - p/q, p/q - n) 
+			if (a.IsNumber() && b.IsSimpleFraction())
 			{
-				// a * x + x => (a + 1) * x
-				return (a.GetFirstOperand() + One) * b;
+				if (TrySimplifySimpleFractionAddition(a, b) is SymbolicExpression result) return result;
 			}
-			else if (b.IsBinaryOperation() && b.IsMultiplication() && b.GetFirstOperand().IsNumber() && a.Equals(b.GetSecondOperand()))
+			else if (b.IsNumber() && a.IsSimpleFraction())
 			{
-				// x + b * x => (1 + b) * x
-				return (One + b.GetFirstOperand()) * a;
+				if (TrySimplifySimpleFractionAddition(b, a) is SymbolicExpression result) return result;
 			}
 
 			// Divisions
@@ -104,6 +129,16 @@ namespace SolidSharp.Expressions
 			return SortExpressions(ref a, ref b) ?
 				new BinaryOperationExpression(BinaryOperator.Addition, a, b) :
 				null;
+		}
+
+		private static SymbolicExpression TrySimplifySimpleFractionAddition(SymbolicExpression n, SymbolicExpression f)
+		{
+			if (n.GetValue() < 0 != (f.GetFirstOperand().GetValue() < 0 != f.GetSecondOperand().GetValue() < 0))
+			{
+				return (n * f.GetSecondOperand() + f.GetFirstOperand()) / f.GetSecondOperand();
+			}
+
+			return null;
 		}
 
 		public static SymbolicExpression TrySimplifyAddition(ImmutableArray<SymbolicExpression> operands)

@@ -1,4 +1,6 @@
 ﻿using SolidSharp.Expressions;
+using SolidSharp.Expressions.Extensions;
+using System;
 using System.Collections.Immutable;
 using System.Reflection;
 using Xunit;
@@ -34,6 +36,28 @@ namespace SolidSharp.Tests.Expressions
 			var y = Var("𝓎");
 
 			Assert.Equal(Pow(t, x - y), Pow(t, x) / Pow(t, y));
+		}
+
+		[Fact]
+		public void ExponentsShouldMultiply()
+		{
+			var t = Var("𝓉");
+			var x = Var("𝓍");
+			var y = Var("𝓎");
+
+			Assert.Equal(Pow(t, x * y), Pow(Pow(t, x), y));
+			Assert.Equal(Pow(t, x * y), Pow(Pow(t, y), x));
+		}
+
+		[Fact]
+		public void RootsShouldMultiply()
+		{
+			var t = Var("𝓉");
+			var x = Var("𝓍");
+			var y = Var("𝓎");
+
+			Assert.Equal(Root(t, x * y), Root(Root(t, x), y));
+			Assert.Equal(Root(t, x * y), Root(Root(t, y), x));
 		}
 
 		[Fact]
@@ -86,6 +110,25 @@ namespace SolidSharp.Tests.Expressions
 			Assert.Equal(expected, (x * y) * (z * w));
 			Assert.Equal(expected, (x * (y * z)) * w);
 			Assert.Equal(expected, ((x * y) * z) * w);
+		}
+
+		[Fact]
+		public void DivisionsShouldMerge()
+		{
+			var x = Var("𝓍");
+			var y = Var("𝓎");
+			var z = Var("𝓏");
+			var w = Var("𝓌");
+
+			Assert.Equal((x * z) / (y * w), (x / y) * (z / w));
+		}
+
+		[Fact]
+		public void DivisionByZeroShouldThrow()
+		{
+			var t = Var("𝓉");
+
+			Assert.Throws<DivideByZeroException>(() => t / Zero);
 		}
 
 		[Fact]
@@ -256,6 +299,34 @@ namespace SolidSharp.Tests.Expressions
 		}
 
 		[Fact]
+		public void ZeroPowerZeroShouldNotSimplify()
+		{
+			var e = Pow(Zero, Zero);
+
+			Assert.Equal(ExpressionKind.BinaryOperation, e.Kind);
+			Assert.Equal(Zero, e.GetFirstOperand());
+			Assert.Equal(Zero, e.GetSecondOperand());
+		}
+
+		[Theory]
+		[InlineData(-10)]
+		[InlineData(-3)]
+		[InlineData(-2)]
+		[InlineData(-1)]
+		[InlineData(1)]
+		[InlineData(2)]
+		[InlineData(3)]
+		[InlineData(4)]
+		[InlineData(5)]
+		[InlineData(6)]
+		[InlineData(25)]
+		[InlineData(666)]
+		public void NumberToZeroPowerShouldBeOne(int number)
+		{
+			Assert.Same(One, Pow(number, Zero));
+		}
+
+		[Fact]
 		public void SquareRootSquaredShouldNegate()
 		{
 			var t = Var("𝓉");
@@ -286,6 +357,14 @@ namespace SolidSharp.Tests.Expressions
 			var t = Var("𝓉");
 
 			Assert.Same(t, Pow(Root(t, value), value));
+		}
+
+		[Fact]
+		public void FirstRootShouldBeIdentity()
+		{
+			var t = Var("𝓉");
+
+			Assert.Same(t, Root(t, 1));
 		}
 
 		[Fact]
@@ -334,6 +413,20 @@ namespace SolidSharp.Tests.Expressions
 			Assert.NotEqual(t, Abs(t));
 			Assert.Equal(t * t, Abs(t) * Abs(t));
 			Assert.Equal(t * t, Pow(Abs(t), 2));
+		}
+
+		[Theory]
+		[InlineData(-1)]
+		[InlineData(-2)]
+		[InlineData(-3)]
+		[InlineData(-20)]
+		[InlineData(-55)]
+		[InlineData(-203)]
+		[InlineData(-757)]
+		[InlineData(-1000652)]
+		public void AbsoluteValueOfNegativeNumberIsNegation(long number)
+		{
+			Assert.Equal(N(-number), Abs(N(number)));
 		}
 
 		public static TheoryData<decimal, long, long> DecimalNumberConversionData = new TheoryData<decimal, long, long>
@@ -401,6 +494,7 @@ namespace SolidSharp.Tests.Expressions
 		{
 			Assert.Equal(N(1) / N(2), N(1) - N(1) / N(2));
 			Assert.Equal(-N(1) / N(2), -N(1) + N(1) / N(2));
+			Assert.Equal(-N(1) / N(2), N(1) / N(2) - N(1));
 		}
 
 		[Fact]
@@ -451,7 +545,7 @@ namespace SolidSharp.Tests.Expressions
 		}
 
 		[Fact]
-		public void SquareRootOfMinusOneIsImagianry()
+		public void SquareRootOfMinusOneIsImaginary()
 		{
 			Assert.Equal(I, Sqrt(-1));
 		}

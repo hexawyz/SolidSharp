@@ -121,11 +121,6 @@ namespace SolidSharp.Expressions
 				return SymbolicExpression.Add(b.GetOperands().Insert(0, a));
 			}
 
-			if (a.Equals(b))
-			{
-				return 2 * a;
-			}
-
 			return SortExpressions(ref a, ref b) ?
 				new BinaryOperationExpression(BinaryOperator.Addition, a, b) :
 				null;
@@ -717,9 +712,16 @@ namespace SolidSharp.Expressions
 			{
 				// NB: 0⁰ is supposed to be undefined in the general case.
 				// Only simplify the exp ression if we can guarantee that x is non-zero.
-				if (a.IsNumber() && !a.IsZero())
+				if (a.IsNumber())
 				{
-					return 1;
+					if (!a.IsZero())
+					{
+						return 1;
+					}
+					else
+					{
+						return null;
+					}
 				}
 			}
 			else if (b.IsOne()) // x¹ => x

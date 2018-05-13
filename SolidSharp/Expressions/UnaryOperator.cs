@@ -1,7 +1,7 @@
 ﻿namespace SolidSharp.Expressions
 {
 	public enum UnaryOperator : byte
-    {
+	{
 		Plus = 0, // This is actually quite the useless operator… I'm not even sure why I'm including something that will never get any practical use.
 		Minus = 1,
 
@@ -14,5 +14,5 @@
 		Tan = 131,
 
 		Ln = 132,
-    }
+	}
 }

@@ -73,6 +73,15 @@ namespace SolidSharp.Expressions.Extensions
 		public static bool IsConstant(this SymbolicExpression e)
 			=> ((IExpression)e).IsConstant;
 
+		public static bool IsVariable(this SymbolicExpression e)
+			=> ((IExpression)e).IsVariable;
+
+		/// <summary>Gets the name of the variable or constant.</summary>
+		/// <returns>The name of the symbol represented by the current expression.</returns>
+		/// <exception cref="NotSupportedException">This expression is neither a variable nor a constant.</exception>
+		public static string GetName(this SymbolicExpression e)
+			=> ((IExpression)e).Name;
+
 		/// <summary>Gets the precedence of the operation.</summary>
 		/// <returns>A value indicating the priority of the operation, the lower the highest.</returns>
 		/// <exception cref="NotSupportedException">This expression is not an operation.</exception>

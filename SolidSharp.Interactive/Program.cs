@@ -32,59 +32,58 @@ namespace SolidSharp.Interactive
 			
 			ScriptState<object> state = null;
 
-			var cts = new CancellationTokenSource();
+			var cts = CancellationTokenSource.CreateLinkedTokenSource(host.CancellationToken, default);
 
-			Console.WriteLine("Solid♯ Interactive");
+			Console.WriteLine("Solid# Interactive");
 			Console.WriteLine("------------------");
 			Console.WriteLine();
-			Console.WriteLine("Leave a blank line to quit.");
+			Console.WriteLine("Use the reset() method to reset the session, and the exit() method to quit.");
 			Console.WriteLine();
 			
-			using (cts.Token.Register(() => host.IsExitRequested = true))
+			Console.CancelKeyPress += (s, e)
+				=> cts.Cancel();
+
+			while (!cts.IsCancellationRequested && ReadLine() is string line)
 			{
-				Console.CancelKeyPress += (s, e)
-					=> cts.Cancel();
+				if (string.IsNullOrWhiteSpace(line)) continue;
 
-				while (ReadLine() is string line && line.Length > 0)
+				try
 				{
-					try
+					if (host.IsNewSessionRequested)
 					{
-						if (host.IsNewSessionRequested)
-						{
-							state = await CSharpScript.RunAsync(line, options, host, cancellationToken: cts.Token);
-							host.IsNewSessionRequested = false;
-						}
-						else
-						{
-							state = await state.ContinueWithAsync(line, options, cancellationToken: cts.Token);
-						}
+						state = await CSharpScript.RunAsync(line, options, host, cancellationToken: cts.Token);
+						host.IsNewSessionRequested = false;
 					}
-					catch (CompilationErrorException ex)
+					else
 					{
-						PrintErrorMessage(ex.Message);
-						continue;
+						state = await state.ContinueWithAsync(line, options, cancellationToken: cts.Token);
 					}
+				}
+				catch (CompilationErrorException ex)
+				{
+					PrintErrorMessage(ex.Message);
+					continue;
+				}
 
-					if (state.Exception != null)
-					{
-						PrintErrorMessage(state.Exception.ToString());
-						continue;
-					}
+				if (state.Exception != null)
+				{
+					PrintErrorMessage(state.Exception.ToString());
+					continue;
+				}
 
-					switch (state.ReturnValue)
-					{
-						case SymbolicExpression expr: Console.WriteLine(expr); break;
-						case SymbolicEquation eq: Console.WriteLine(eq); break;
-						case SymbolicEquationSystem eqs: break;
-						case Vector2 v: Console.WriteLine(v); break;
-						case Vector3 v: Console.WriteLine(v); break;
-						case string s: Console.WriteLine(@"""" + s.Replace(@"""", @"""""") + @""""); break;
-						default:
-							Console.WriteLine(state.ReturnValue.GetType().ToString() + ":");
-							Console.WriteLine(state.ReturnValue.ToString());
-							break;
-						case null: break;
-					}
+				switch (state.ReturnValue)
+				{
+					case SymbolicExpression expr: Console.WriteLine(expr); break;
+					case SymbolicEquation eq: Console.WriteLine(eq); break;
+					case SymbolicEquationSystem eqs: break;
+					case Vector2 v: Console.WriteLine(v); break;
+					case Vector3 v: Console.WriteLine(v); break;
+					case string s: Console.WriteLine(@"""" + s.Replace(@"""", @"""""") + @""""); break;
+					default:
+						Console.WriteLine(state.ReturnValue.GetType().ToString() + ":");
+						Console.WriteLine(state.ReturnValue.ToString());
+						break;
+					case null: break;
 				}
 			}
 		}

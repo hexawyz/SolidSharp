@@ -1,6 +1,10 @@
 ﻿using SolidSharp.Vectors;
+using SolidSharp.Expressions.Extensions;
 using E = SolidSharp.Expressions.SymbolicExpression;
 using M = SolidSharp.Expressions.SymbolicMath;
+using System;
+using System.Collections.Generic;
+using System.Threading;
 
 #pragma warning disable IDE1006 // Naming styles
 
@@ -8,8 +12,10 @@ namespace SolidSharp.Interactive
 {
 	public class InteractiveHost
 	{
+		private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+
 		internal bool IsNewSessionRequested { get; set; }
-		internal bool IsExitRequested { get; set; }
+		internal CancellationToken CancellationToken => _cancellationTokenSource.Token;
 
 		// Predefined variables.
 		//public static E x => Parameters.X;
@@ -61,8 +67,18 @@ namespace SolidSharp.Interactive
 		public static E cos(E x) => M.Cos(x);
 		public static E tan(E x) => M.Tan(x);
 
+		// Computation helper methods
+		public static E replace(E x, E from, E to)
+		{
+			if (x is null) throw new ArgumentNullException(nameof(x));
+			if (from.Kind != Expressions.ExpressionKind.Variable) throw new ArgumentException("The parameter " + nameof(from) + " expects an expression of kind variable.");
+			if (to is null) throw new ArgumentNullException(nameof(to));
+
+			return x.SubstituteVariables(new Dictionary<string, E> { { from.GetName(), to } });
+		}
+
 		// Host methods
 		public void reset() => IsNewSessionRequested = true;
-		public void exit() => IsExitRequested = true;
+		public void exit() => _cancellationTokenSource.Cancel();
 	}
 }

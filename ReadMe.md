@@ -18,7 +18,7 @@ The interactive shell provides specific helper methods for working with expressi
 
 ### Start an interactive command line shell
 
-* Make sure you have the latest [.nET Core](https://dot.net) runtime installed.
+* Make sure you have the latest [.NET Core](https://dot.net) runtime installed.
 * Clone the repository with the tool of your choice.
 * Start the SolidSharp.Interactive project
 
@@ -76,4 +76,20 @@ pow(x, 2) + pow(y, 2)
 ````
 ````
 n(2) + n(3) * t - n(1)/n(2)
+````
+
+Substitute variables with other expressions:
+````
+replace(2 * x + pow(x, 2), x, 98)
+````
+````
+replace(3 * pow(x, 2) + 2 * pow(y, 2), y, 2 * x)
+````
+````
+replace(replace(3 * pow(x, 2) + 2 * pow(y, 2), y, 2 * x), x, 7)
+````
+
+Exit the command line interface:
+````
+exit()
 ````

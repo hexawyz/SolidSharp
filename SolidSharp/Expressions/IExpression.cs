@@ -60,6 +60,10 @@ namespace SolidSharp.Expressions
 		/// <summary>Gets a value indicating if the expression represents a mathematic constant.</summary>
 		bool IsConstant { get; }
 
+		/// <summary>Gets the name of the variable or constant.</summary>
+		/// <exception cref="NotSupportedException">This expression is neither a variable nor a constant.</exception>
+		string Name { get; }
+
 		/// <summary>Gets the precedence of the operation.</summary>
 		/// <returns>A value indicating the priority of the operation, the lower the highest.</returns>
 		/// <exception cref="NotSupportedException">This expression is not an operation.</exception>

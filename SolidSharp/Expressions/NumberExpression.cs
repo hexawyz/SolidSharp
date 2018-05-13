@@ -118,6 +118,8 @@ namespace SolidSharp.Expressions
 		bool IExpression.IsVariable => false;
 		bool IExpression.IsConstant => false;
 
+		string IExpression.Name => throw new NotSupportedException();
+
 		byte IExpression.GetPrecedence() => throw new NotSupportedException();
 		SymbolicExpression IExpression.GetOperand() => throw new NotSupportedException();
 		SymbolicExpression IExpression.GetFirstOperand() => throw new NotSupportedException();

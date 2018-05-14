@@ -817,18 +817,19 @@ namespace SolidSharp.Expressions
 						case -1: return I;
 						case -2: return SquareRootOfTwo * I;
 						default:
-							long sq = Math.Abs(na);
-							long sqrt = MathUtil.IntSqrt(sq);
+							var sq = Math.Abs(na); // Compute the absolute square
 
-							if (sqrt * sqrt == sq)
+							if (na < 0) return I * Sqrt(sq); // Immediately rewrite the square as an imaginary number if it is negative.
+
+							var (f, rsq) = MathUtil.SimplifySqrt(sq); // Try to simplify the square root.
+
+							if (rsq == 1) // Case when the square root has been fully simplified to a factor.
 							{
-								return na >= 0 ?
-									N(sqrt) :
-									I * N(sqrt);
+								return N(f);
 							}
-							else if (na < 0)
+							else if (f > 1) // Case when the square root has been partially simplified.
 							{
-								return I * Sqrt(sq);
+								return N(f) * new BinaryOperationExpression(BinaryOperator.Root, rsq, 2);
 							}
 							break;
 					}

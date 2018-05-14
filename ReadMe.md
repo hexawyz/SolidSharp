@@ -45,7 +45,7 @@ n(0)
 n(42)
 ````
 
-#### Evaluate trigonometric methods
+#### Evaluate trigonometric functions
 
 A decent CAS is supposed to be able to simplify at least basic trigonometric expressions.
 Well known values of ````sin(x)```` and ````cos(x)```` will be simplified when possible.

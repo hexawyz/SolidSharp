@@ -12,20 +12,28 @@ namespace SolidSharp
 		{
 			var primes = new List<uint> { 2, };
 
-			// Allocate ~8KB of data for determining the first few primes
-			var array = new BitArray(65536, true);
+			const int n = 256 * 256 * 4 * 4;
+			const int nsqrt = 256 * 4;
 
-			for (int i = 1; i < 256; i++)
+			// Allocate ~64KB of data for determining the first primes
+			var array = new BitArray(n, true);
+
+			int i;
+
+			for (i = 1; i < n; i++)
 			{
 				if (array[i])
 				{
 					int p = (i << 1) + 1;
 
 					primes.Add(unchecked((uint)p));
-					
-					for (int j = i + p; j < 6556; j += p)
+
+					if (i < nsqrt)
 					{
-						array[j] = false;
+						for (int j = i + p; j < n; j += p)
+						{
+							array[j] = false;
+						}
 					}
 				}
 			}
@@ -169,15 +177,28 @@ namespace SolidSharp
 				// Try dividing by a few prime's squares.
 				for (int i = 1; i < SmallestPrimes.Length; i++)
 				{
-					uint p = SmallestPrimes[i];
+					ulong p = SmallestPrimes[i];
 					ulong sp = p * p;
 
-					if (sp > square) break; // NB: We know that sp ≠ square because of the integer square root computation above.
+					if (sp > square) break;
 
-					while (square % sp == 0)
+					while (true)
 					{
-						factor *= p;
-						square = square / sp;
+						if (square == sp)
+						{
+							factor *= p;
+							square = 1;
+							goto Completed;
+						}
+						else if (square % sp == 0)
+						{
+							factor *= p;
+							square = square / sp;
+						}
+						else
+						{
+							break;
+						}
 					}
 
 					if (square % p == 0)

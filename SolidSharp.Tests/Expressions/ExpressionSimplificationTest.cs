@@ -540,6 +540,7 @@ namespace SolidSharp.Tests.Expressions
 		[InlineData(12, 2, 3)] // Sqrt(12) does simplify to 2 * Sqrt(3)
 		[InlineData(50, 5, 2)] // Sqrt(50) does simplify to 5 * Sqrt(2)
 		[InlineData((long)71 * 43 * 43 * 211 * 211 * 311 * 311, 43 * 211 * 311, 71)]
+		[InlineData((long)311 * 211 * 211 * 211 * 211, 211 * 211, 311)]
 		public void SquareRootOfPositiveNumberShouldSimplify(long number, int simplified, int remaining)
 		{
 			Assert.Equal(N(simplified) * Sqrt(N(remaining)), Sqrt(N(number)));

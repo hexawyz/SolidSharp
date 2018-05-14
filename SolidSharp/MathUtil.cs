@@ -162,12 +162,9 @@ namespace SolidSharp
 			{
 				factor *= sqrt;
 				square = 1;
-
-				goto Completed;
 			}
-			
 			// Naive iterative algorithm for factoring the value of square in prime numbers and squares of prime numbers.
-			if (square <= long.MaxValue)
+			else if (square <= long.MaxValue)
 			{
 				// Try dividing by a few prime's squares.
 				for (int i = 1; i < SmallestPrimes.Length; i++)
@@ -175,18 +172,21 @@ namespace SolidSharp
 					uint p = SmallestPrimes[i];
 					ulong sp = p * p;
 
-					if (sp > square) goto Completed; // NB: We know that sp ≠ square because of the integer square root computation above.
+					if (sp > square) break; // NB: We know that sp ≠ square because of the integer square root computation above.
 
-					if (square % sp == 0)
+					while (square % sp == 0)
 					{
 						factor *= p;
 						square = square / sp;
 					}
-					else if (square % p == 0)
+
+					if (square % p == 0)
 					{
 						// Still reduce the size of square, trying to reduce the required number of iterations.
 						square /= p;
 						squareFactors *= p;
+
+						if (square == 1) break;
 					}
 				}
 			}

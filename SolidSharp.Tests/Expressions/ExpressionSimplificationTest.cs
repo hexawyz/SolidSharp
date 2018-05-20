@@ -575,9 +575,31 @@ namespace SolidSharp.Tests.Expressions
 		[InlineData(1321)] // Prime number
 		[InlineData(691)] // Prime number
 		[InlineData(7873)] // Prime number
-		public void SquareRootOfNegativeSquareShouldComputeAndToImaginary(int number)
+		public void SquareRootOfNegativeSquareShouldComputeToImaginary(int number)
 		{
 			Assert.Equal(N(number) * I, Sqrt(-N((long)number * number)));
+		}
+
+		[Theory]
+		[InlineData(0, 3, 1, 0)] // ∛0 = 0
+		[InlineData(0, 4, 1, 0)] // ∜0 = 0
+		[InlineData(1, 3, 1, 1)] // ∛1 = 1
+		[InlineData(1, 4, 1, 1)] // ∜1 = 1
+		[InlineData(2, 3, 1, 2)] // ∛2 does not simplify
+		[InlineData(3, 3, 1, 3)] // ∛3 does not simplify
+		[InlineData(4, 3, 1, 4)] // ∛4 does not simplify
+		[InlineData(8, 3, 2, 1)] // ∛8 = 2
+		[InlineData(27, 3, 3, 1)] // ∛27 = 3
+		[InlineData(27 * 8, 3, 6, 1)] // ∛(27 * 8) = 6
+		[InlineData(27 * 2, 3, 3, 2)] // ∛(27 * 2) = 3∛2
+		[InlineData(16, 4, 2, 1)] // ∜16 = 2
+		[InlineData(32, 4, 2, 2)] // ∜32 = 2∜2
+		[InlineData(81, 4, 3, 1)] // ∜81 = 3
+		[InlineData(2 * 81, 4, 3, 2)] // ∜162 = 3∜2
+		[InlineData(7L * 7 * 7 * 7 * 13 * 13 * 13 * 13 * 21 * 3 * 3 * 2 * 2 * 2, 4, 7 * 13, 21 * 3 * 3 * 2 * 2 * 2)]
+		public void NthRootOfPositiveNumberShouldSimplify(long number, long power, int simplified, int remaining)
+		{
+			Assert.Equal(N(simplified) * Root(N(remaining), power), Root(N(number), power));
 		}
 	}
 }

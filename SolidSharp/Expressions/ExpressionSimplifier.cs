@@ -803,19 +803,24 @@ namespace SolidSharp.Expressions
 				{
 					return a;
 				}
+				else if (nb < 0)
+				{
+					return 1 / Sqrt(checked(-nb));
+				}
 				else if (nb == 2 && a.IsNumber())
 				{
-					// Return a cached expression for common square roots.
 					long na = a.GetValue();
 
-					switch (a.GetValue())
+					switch (na)
 					{
+						// Return a cached expression for common square roots.
 						case 0: return Zero;
 						case 1: return One;
 						case 2: return SquareRootOfTwo;
 						case 3: return SquareRootOfThree;
 						case -1: return I;
 						case -2: return SquareRootOfTwo * I;
+						// Otherwise, try to simplify the square root.
 						default:
 							var sq = Math.Abs(na); // Compute the absolute square
 
@@ -832,6 +837,28 @@ namespace SolidSharp.Expressions
 								return N(f) * new BinaryOperationExpression(BinaryOperator.Root, rsq, 2);
 							}
 							break;
+					}
+				}
+				else if (nb > 2 && a.IsNumber())
+				{
+					long na = a.GetValue();
+
+					// Return a cached expression for simple roots.
+					if (na == 0) return Zero;
+					else if (na == 1) return One;
+					// Otherwise, try to simplify the root for positive numbers.
+					else if (na > 0)
+					{
+						var (f, rv) = unchecked(MathUtil.SimplifyNthRoot((ulong)na, (ulong)nb)); // Try to simplify the square root.
+
+						if (rv == 1) // Case when the root has been fully simplified to a factor.
+						{
+							return N(f);
+						}
+						else if (f > 1) // Case when the square root has been partially simplified.
+						{
+							return N(f) * new BinaryOperationExpression(BinaryOperator.Root, rv, nb);
+						}
 					}
 				}
 				else if (a.IsPower())

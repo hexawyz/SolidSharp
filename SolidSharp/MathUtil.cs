@@ -93,6 +93,28 @@ namespace SolidSharp
 			return x * r;
 		}
 
+		public static ulong Pow(ulong x, ulong n)
+		{
+			if (x == 0 && n == 0) throw new InvalidOperationException("0⁰ is undefined.");
+			if (x == 0) return 0;
+			if (x == 0) return 1;
+
+			ulong r = 1;
+
+			while (n > 1)
+			{
+				if ((n & 1) != 0)
+				{
+					r = checked(x * r);
+					--n;
+				}
+				x = checked(x * x);
+				n >>= 1;
+			}
+
+			return x * r;
+		}
+
 		public static void Swap<T>(ref T a, ref T b)
 		{
 			var c = a;
@@ -129,7 +151,7 @@ namespace SolidSharp
 			return result;
 		}
 
-		public static (long factor, long square) SimplifySqrt(long x)
+		public static (long Factor, long Square) SimplifySqrt(long x)
 		{
 			if (x < 0) throw new ArgumentOutOfRangeException(nameof(x));
 
@@ -142,7 +164,7 @@ namespace SolidSharp
 		{
 			ulong factor = 1; // The factor applied to the square root. For perfect squares, this will end up being sqrt(x).
 			ulong square = x; // The current value of the square whose root shall be found. For perfect squares, this will end up being 1.
-			ulong squareFactors = 1; // Accumulate the non-squared prime numbers there. For perfect squares, this stay 1.
+			ulong squareFactors = 1; // Accumulate the non-squared prime numbers there. For perfect squares, this will stay 1.
 
 			// Very easily simplify powers of 4.
 			while ((square & 3) == 0)
@@ -214,6 +236,59 @@ namespace SolidSharp
 
 		Completed:;
 			return (factor, square * squareFactors);
+		}
+
+		public static (ulong Factor, ulong Square) SimplifyNthRoot(ulong x, ulong y)
+		{
+			ulong factor = 1; // The factor applied to the root. For perfect squares, this will end up being sqrt(x).
+			ulong number = x; // The current value of the number whose root shall be found. For perfect powers, this will end up being 1.
+			ulong excludedFactors = 1; // Accumulate the prime numbers there. For perfect powers, this will stay 1.
+			
+			// Go through all the pre-computed prime numbers, and try to factor those out.
+			for (int i = 0; i < SmallestPrimes.Length; i++)
+			{
+				ulong p = SmallestPrimes[i];
+
+				if (p >= number) break;
+
+				ulong pp;
+
+				try { pp = Pow(p, y); } // This can easily overflow.
+				catch (OverflowException) { break; }
+
+				if (pp > number) break;
+
+				while (true)
+				{
+					if (number == pp)
+					{
+						factor *= p;
+						number = 1;
+						goto Completed;
+					}
+					else if (number % pp == 0)
+					{
+						factor *= p;
+						number = number / pp;
+					}
+					else
+					{
+						break;
+					}
+				}
+
+				while (number % p == 0)
+				{
+					// Still reduce the size of square, trying to reduce the required number of iterations.
+					number /= p;
+					excludedFactors *= p;
+
+					if (number == 1) break;
+				}
+			}
+
+		Completed:;
+			return (factor, number * excludedFactors);
 		}
 	}
 }

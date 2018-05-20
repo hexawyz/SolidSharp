@@ -225,6 +225,12 @@ namespace SolidSharp.Expressions
 				}
 			}
 
+			// Root merging
+			if (a.IsRoot() && b.IsRoot() && a.GetSecondOperand().Equals(b.GetSecondOperand()))
+			{
+				return Root(a.GetFirstOperand() * b.GetFirstOperand(), a.GetSecondOperand());
+			}
+
 			// Division merging
 			if (a.IsDivision() && b.IsDivision()) // (x / y) * (z / w) => x * z / (y * w)
 			{

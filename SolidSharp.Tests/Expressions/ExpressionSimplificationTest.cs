@@ -597,9 +597,20 @@ namespace SolidSharp.Tests.Expressions
 		[InlineData(81, 4, 3, 1)] // ∜81 = 3
 		[InlineData(2 * 81, 4, 3, 2)] // ∜162 = 3∜2
 		[InlineData(7L * 7 * 7 * 7 * 13 * 13 * 13 * 13 * 21 * 3 * 3 * 2 * 2 * 2, 4, 7 * 13, 21 * 3 * 3 * 2 * 2 * 2)]
-		public void NthRootOfPositiveNumberShouldSimplify(long number, long power, int simplified, int remaining)
+		public void NthRootOfPositiveNumberShouldSimplify(long number, long exponent, int simplified, int remaining)
 		{
-			Assert.Equal(N(simplified) * Root(N(remaining), power), Root(N(number), power));
+			Assert.Equal(N(simplified) * Root(N(remaining), exponent), Root(N(number), exponent));
+		}
+
+		[Fact]
+		public void RootsWithSameExponentShouldMerge()
+		{
+			var x = Var("𝓍");
+			var y = Var("𝓎");
+			var z = Var("𝓏");
+
+			Assert.Equal(Root(x * y, z), Root(x, z) * Root(y, z));
+			Assert.Equal(Root(x * y, z), Root(y, z) * Root(x, z));
 		}
 	}
 }

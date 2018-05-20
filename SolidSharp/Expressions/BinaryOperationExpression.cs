@@ -88,10 +88,10 @@ namespace SolidSharp.Expressions
 							return firstParenthesesRequired ? "∛(" + FirstOperand.ToString() + ")" : "∛" + FirstOperand.ToString();
 						case 4:
 							return firstParenthesesRequired ? "∜(" + FirstOperand.ToString() + ")" : "∜" + FirstOperand.ToString();
-						default:
-							return "root(" + FirstOperand.ToString() + ", " + SecondOperand.ToString() + ")";
 					}
 				}
+
+				return "root(" + FirstOperand.ToString() + ", " + SecondOperand.ToString() + ")";
 			}
 
 			string @operator = OperatorToString[Operator];

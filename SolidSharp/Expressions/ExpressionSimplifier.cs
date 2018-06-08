@@ -722,12 +722,16 @@ namespace SolidSharp.Expressions
 				{
 					if (!a.IsZero())
 					{
-						return 1;
+						return One;
 					}
 					else
 					{
 						return null;
 					}
+				}
+				if (a.IsConstant())
+				{
+					return One;
 				}
 			}
 			else if (b.IsOne()) // x¹ => x
@@ -794,6 +798,19 @@ namespace SolidSharp.Expressions
 				var op1 = (BinaryOperationExpression)a;
 
 				return Pow(op1.FirstOperand, op1.SecondOperand * b);
+			}
+
+			if (a.Equals(E))
+			{
+				if (b.IsUnaryOperation())
+				{
+					var op2 = (UnaryOperationExpression)b;
+
+					if (op2.Operator == UnaryOperator.Ln)
+					{
+						return op2.Operand;
+					}
+				}
 			}
 
 			return null;
@@ -928,7 +945,7 @@ namespace SolidSharp.Expressions
 
 			x = TrySimplifyDivision(x, Pi);
 
-			// We can only work with fractions of π. Thus we need to divide 
+			// We can only work with fractions of π. Thus we need to divide by π.
 			if (!(x is null))
 			{
 				if (x.IsAddition()) // Remove constant part: (N + X) => X
@@ -981,5 +998,26 @@ namespace SolidSharp.Expressions
 
 		public static SymbolicExpression TrySimplifyCos(SymbolicExpression x)
 			=> TrySimplifySin(x + HalfPi); // That looks pretty dumb, but it should do the trick if everything is wired up properly.
+
+		public static SymbolicExpression TrySimplifyLn(SymbolicExpression x)
+		{
+			// TODO: Ln(0) = -∞ ?
+
+			if (x.Equals(One))
+			{
+				return Zero;
+			}
+			else if (x.Equals(E))
+			{
+				return One;
+			}
+
+			if (x.IsPower())
+			{
+				return x.GetSecondOperand() * Ln(x.GetFirstOperand());
+			}
+
+			return null;
+		}
 	}
 }

@@ -612,5 +612,34 @@ namespace SolidSharp.Tests.Expressions
 			Assert.Equal(Root(x * y, z), Root(x, z) * Root(y, z));
 			Assert.Equal(Root(x * y, z), Root(y, z) * Root(x, z));
 		}
+
+		[Fact]
+		public void LnOfPowerShouldSimplify()
+		{
+			var x = Var("𝓍");
+			var y = Var("𝓎");
+
+			Assert.Equal(y * Ln(x), Ln(Pow(x, y)));
+		}
+
+		[Fact]
+		public void LnShouldCancelExp()
+		{
+			var x = Var("𝓍");
+
+			Assert.Same(One, Ln(E));
+			Assert.Same(x, Ln(Pow(E, x)));
+			Assert.Same(x, Ln(Exp(x)));
+		}
+
+		[Fact]
+		public void ExpShouldCancelLn()
+		{
+			var x = Var("𝓍");
+
+			Assert.Same(One, Exp(Ln(1)));
+			Assert.Same(x, Pow(E, Ln(x)));
+			Assert.Same(x, Exp(Ln(x)));
+		}
 	}
 }

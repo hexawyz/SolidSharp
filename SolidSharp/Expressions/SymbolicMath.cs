@@ -59,7 +59,8 @@ namespace SolidSharp.Expressions
 			=> new UnaryOperationExpression(UnaryOperator.Tan, x);
 
 		public static SymbolicExpression Ln(SymbolicExpression x)
-			=> new UnaryOperationExpression(UnaryOperator.Ln, x);
+			=> ExpressionSimplifier.TrySimplifyLn(x)
+			?? new UnaryOperationExpression(UnaryOperator.Ln, x);
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static SymbolicExpression Exp(SymbolicExpression x)
@@ -68,5 +69,5 @@ namespace SolidSharp.Expressions
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static SymbolicExpression Sqrt(SymbolicExpression x)
 			=> Root(x, Two);
-    }
+	}
 }

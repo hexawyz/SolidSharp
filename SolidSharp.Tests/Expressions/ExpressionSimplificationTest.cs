@@ -641,5 +641,68 @@ namespace SolidSharp.Tests.Expressions
 			Assert.Same(x, Pow(E, Ln(x)));
 			Assert.Same(x, Exp(Ln(x)));
 		}
+
+		[Fact]
+		public void ExpOfSingleLnShouldConvertToPower()
+		{
+			var x = Var("𝓍");
+			var y = Var("𝓎");
+
+			Assert.Equal(Pow(x, y), Exp(y * Ln(x)));
+			Assert.Equal(Pow(x, y), Pow(E, y * Ln(x)));
+		}
+
+		[Theory]
+		[InlineData(2, 2, 4)]
+		[InlineData(3, 12, 531441)]
+		[InlineData(5, 2, 25)]
+		[InlineData(33, 4, 1185921)]
+		public void ExpOfSingleLnShouldCompute(int @base, int exponent, long expectedResult)
+		{
+			Assert.Equal(N(expectedResult), Exp(N(exponent) * Ln(N(@base))));
+			Assert.Equal(N(expectedResult), Exp(Ln(N(@base)) * N(exponent)));
+			Assert.Equal(N(expectedResult), Pow(E, N(exponent) * Ln(N(@base))));
+			Assert.Equal(N(expectedResult), Pow(E, Ln(N(@base)) * N(exponent)));
+		}
+
+		[Fact]
+		public void ExpOfMultipleLnShouldNotConvertToPower()
+		{
+			var x = Var("𝓍");
+			var y = Var("𝓎");
+			var z = Var("𝓏");
+
+			bool IsExp(SymbolicExpression e) => e.IsPower() && e.GetFirstOperand().Equals(E);
+
+			Assert.True(IsExp(Exp(Ln(x) * Ln(y))));
+			Assert.True(IsExp(Exp(Ln(y) * Ln(x))));
+
+			Assert.True(IsExp(Exp(Ln(x) * Ln(y) * Ln(z))));
+			Assert.True(IsExp(Exp(Ln(x) * Ln(z) * Ln(y))));
+			Assert.True(IsExp(Exp(Ln(y) * Ln(x) * Ln(z))));
+			Assert.True(IsExp(Exp(Ln(y) * Ln(z) * Ln(x))));
+			Assert.True(IsExp(Exp(Ln(z) * Ln(x) * Ln(y))));
+			Assert.True(IsExp(Exp(Ln(z) * Ln(y) * Ln(x))));
+		}
+
+		[Fact]
+		public void ExpOfSingleLnFactorShouldConvertToPower()
+		{
+			var x = Var("𝓍");
+			var y = Var("𝓎");
+			var z = Var("𝓏");
+			
+			Assert.Equal(new BinaryOperationExpression(BinaryOperator.Power, y, x), Exp(x * Ln(y)));
+			Assert.Equal(new BinaryOperationExpression(BinaryOperator.Power, y, x), Exp(Ln(y) * x));
+
+			Assert.Equal(new BinaryOperationExpression(BinaryOperator.Power, x, y), Exp(y * Ln(x)));
+			Assert.Equal(new BinaryOperationExpression(BinaryOperator.Power, x, y), Exp(Ln(x) * y));
+
+			Assert.Equal(new BinaryOperationExpression(BinaryOperator.Power, y, x * z), Exp(x * Ln(y) * z));
+			Assert.Equal(new BinaryOperationExpression(BinaryOperator.Power, y, x * z), Exp(z * Ln(y) * x));
+			Assert.Equal(new BinaryOperationExpression(BinaryOperator.Power, y, x * z), Exp(Ln(y) * x * z));
+			Assert.Equal(new BinaryOperationExpression(BinaryOperator.Power, y, x * z), Exp(Ln(y) * z * x));
+			Assert.Equal(new BinaryOperationExpression(BinaryOperator.Power, y, x * z), Exp(x * z * Ln(y)));
+		}
 	}
 }

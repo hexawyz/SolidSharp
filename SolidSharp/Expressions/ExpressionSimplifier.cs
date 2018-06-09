@@ -802,15 +802,56 @@ namespace SolidSharp.Expressions
 				return Pow(op1.FirstOperand, op1.SecondOperand * b);
 			}
 
+			// Try to simplify an expression of the form exp(x₀ * … * xₙ * ln(y) * z₀ * … * zₙ) to y ^ (x₀ * … * xₙ * z₀ * … * zₙ)
 			if (a.Equals(E))
 			{
-				if (b.IsLn())
+				var factors = SymbolicExpressionExtensions.GetFactors(ref b);
+
+				int lnIndex = -1;
+
+				for (int i = 0; i < factors.Length; i++)
 				{
-					return b.GetOperand();
+					if (factors[i].IsLn())
+					{
+						if (lnIndex >= 0)
+						{
+							lnIndex = -1;
+							break;
+						}
+
+						lnIndex = i;
+					}
+				}
+
+				if (lnIndex >= 0)
+				{
+					var @base = factors[lnIndex].GetOperand();
+
+					switch (factors.Length)
+					{
+						case 1: return @base;
+						case 2: return Pow(@base, factors[lnIndex ^ 1]);
+						default: return Pow(@base, RemoveFactor(factors, lnIndex));
+					}
 				}
 			}
 
 			return null;
+		}
+
+		private static SymbolicExpression RemoveFactor(ReadOnlySpan<SymbolicExpression> factors, int index)
+		{
+			if (factors.Length == 3)
+			{
+				switch (index)
+				{
+					case 0: return factors[1] * factors[2];
+					case 1: return factors[0] * factors[2];
+					case 2: return factors[0] * factors[1];
+				}
+			}
+
+			return SymbolicExpression.Multiply(factors.RemoveAt(index));
 		}
 
 		public static SymbolicExpression TrySimplifyRoot(SymbolicExpression a, SymbolicExpression b)

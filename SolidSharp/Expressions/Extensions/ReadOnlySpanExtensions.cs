@@ -57,6 +57,16 @@ namespace SolidSharp.Expressions.Extensions
 			return AsImmutableArray(ref array);
 		}
 
+		public static ImmutableArray<T> RemoveAt<T>(this ReadOnlySpan<T> items, int index)
+		{
+			T[] array = new T[items.Length - 1];
+
+			items.Slice(0, index).CopyTo(array);
+			items.Slice(index + 1).CopyTo(array.AsSpan(index));
+
+			return AsImmutableArray(ref array);
+		}
+
 		public static ImmutableArray<TResult> Map<TSource, TResult>(this ReadOnlySpan<TSource> items, Func<TSource, TResult> selector)
 		{
 			TResult[] array = new TResult[items.Length];

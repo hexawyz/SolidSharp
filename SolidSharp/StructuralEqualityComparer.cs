@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace SolidSharp
@@ -60,6 +61,33 @@ namespace SolidSharp
 			else if (a.IsDefault && b == null)
 			{
 				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+		public static bool Equals<T>(ReadOnlySpan<T> a, ImmutableArray<T>.Builder b)
+		{
+			if (b != null)
+			{
+				if (a.Length == b.Count)
+				{
+					for (int i = 0; i < a.Length; i++)
+					{
+						if (!EqualityComparer<T>.Default.Equals(a[i], b[i]))
+						{
+							return false;
+						}
+					}
+
+					return true;
+				}
+				else
+				{
+					return false;
+				}
 			}
 			else
 			{

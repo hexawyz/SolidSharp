@@ -56,6 +56,7 @@ namespace SolidSharp.Expressions
 
 		bool IExpression.IsPower => false;
 		bool IExpression.IsRoot => false;
+		bool IExpression.IsLn => false;
 
 		bool IExpression.IsMathematicalFunction => false;
 
@@ -74,7 +75,7 @@ namespace SolidSharp.Expressions
 		SymbolicExpression IExpression.GetOperand() => throw new NotSupportedException();
 		SymbolicExpression IExpression.GetFirstOperand() => throw new NotSupportedException();
 		SymbolicExpression IExpression.GetSecondOperand() => throw new NotSupportedException();
-		ImmutableArray<SymbolicExpression> IExpression.GetOperands() => throw new NotSupportedException();
+		ReadOnlySpan<SymbolicExpression> IExpression.GetOperands() => throw new NotSupportedException();
 
 		#endregion
 	}

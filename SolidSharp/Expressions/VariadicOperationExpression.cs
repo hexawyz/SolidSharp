@@ -78,6 +78,7 @@ namespace SolidSharp.Expressions
 
 		bool IExpression.IsPower => false;
 		bool IExpression.IsRoot => false;
+		bool IExpression.IsLn => false;
 
 		bool IExpression.IsMathematicalFunction => false;
 
@@ -98,7 +99,7 @@ namespace SolidSharp.Expressions
 		SymbolicExpression IExpression.GetOperand() => throw new NotSupportedException();
 		SymbolicExpression IExpression.GetFirstOperand() => Operands[0];
 		SymbolicExpression IExpression.GetSecondOperand() => Operands[1];
-		ImmutableArray<SymbolicExpression> IExpression.GetOperands() => Operands;
+		ReadOnlySpan<SymbolicExpression> IExpression.GetOperands() => Operands.AsReadOnlySpan();
 
 		#endregion
 	}

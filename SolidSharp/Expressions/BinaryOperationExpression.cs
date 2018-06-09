@@ -16,17 +16,20 @@ namespace SolidSharp.Expressions
 			{ BinaryOperator.Power, "^" },
 		};
 
-		public BinaryOperator Operator { get; set; }
+		public BinaryOperator Operator { get; }
 
-		public SymbolicExpression FirstOperand { get; set; }
+		// Not switching over to readonly field & readonly struct yet as I did not ensure that it works as expected.
+		private FixedLengthArray2<SymbolicExpression> _operands;
 
-		public SymbolicExpression SecondOperand { get; set; }
+		public SymbolicExpression FirstOperand => _operands.Item1;
+
+		public SymbolicExpression SecondOperand => _operands.Item2;
 
 		internal BinaryOperationExpression(BinaryOperator @operator, SymbolicExpression firstOperand, SymbolicExpression secondOperand)
 		{
 			Operator = @operator;
-			FirstOperand = firstOperand ?? throw new ArgumentNullException(nameof(firstOperand));
-			SecondOperand = secondOperand ?? throw new ArgumentNullException(nameof(secondOperand));
+			_operands.Item1 = firstOperand ?? throw new ArgumentNullException(nameof(firstOperand));
+			_operands.Item2 = secondOperand ?? throw new ArgumentNullException(nameof(secondOperand));
 		}
 
 		public override ExpressionKind Kind => ExpressionKind.BinaryOperation;
@@ -140,6 +143,7 @@ namespace SolidSharp.Expressions
 
 		bool IExpression.IsPower => Operator == BinaryOperator.Power;
 		bool IExpression.IsRoot => Operator == BinaryOperator.Root;
+		bool IExpression.IsLn => false;
 
 		bool IExpression.IsMathematicalFunction => false;
 
@@ -148,7 +152,7 @@ namespace SolidSharp.Expressions
 		bool IExpression.IsNegativeNumber => false;
 		bool IExpression.IsOddNumber => false;
 		bool IExpression.IsEvenNumber => false;
-		
+
 		bool IExpression.IsSimpleFraction => Operator == BinaryOperator.Division && FirstOperand.IsNumber() && SecondOperand.IsNumber();
 
 		bool IExpression.IsVariable => false;
@@ -160,8 +164,8 @@ namespace SolidSharp.Expressions
 		SymbolicExpression IExpression.GetOperand() => throw new NotSupportedException();
 		SymbolicExpression IExpression.GetFirstOperand() => FirstOperand;
 		SymbolicExpression IExpression.GetSecondOperand() => SecondOperand;
-		ImmutableArray<SymbolicExpression> IExpression.GetOperands() => ImmutableArray.Create(FirstOperand, SecondOperand);
-		
+		ReadOnlySpan<SymbolicExpression> IExpression.GetOperands() => _operands.AsSpan();
+
 		#endregion
 	}
 }

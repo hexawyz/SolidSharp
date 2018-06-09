@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 
 namespace SolidSharp.Expressions
 {
@@ -17,14 +18,16 @@ namespace SolidSharp.Expressions
 			{ UnaryOperator.Ln, "ln" },
 		};
 
-		public UnaryOperator Operator { get; set; }
+		public UnaryOperator Operator { get; }
 
-		public SymbolicExpression Operand { get; set; }
+		private SymbolicExpression _operand;
+
+		public SymbolicExpression Operand => _operand;
 
 		internal UnaryOperationExpression(UnaryOperator @operator, SymbolicExpression operand)
 		{
 			Operator = @operator;
-			Operand = operand ?? throw new ArgumentNullException(nameof(operand));
+			_operand = operand ?? throw new ArgumentNullException(nameof(operand));
 		}
 
 		public override ExpressionKind Kind => ExpressionKind.UnaryOperation;
@@ -102,6 +105,7 @@ namespace SolidSharp.Expressions
 
 		bool IExpression.IsPower => false;
 		bool IExpression.IsRoot => false;
+		bool IExpression.IsLn => Operator == UnaryOperator.Ln;
 
 		bool IExpression.IsMathematicalFunction => Operator.IsFunction();
 
@@ -122,7 +126,7 @@ namespace SolidSharp.Expressions
 		SymbolicExpression IExpression.GetOperand() => Operand;
 		SymbolicExpression IExpression.GetFirstOperand() => Operand;
 		SymbolicExpression IExpression.GetSecondOperand() => throw new NotSupportedException();
-		ImmutableArray<SymbolicExpression> IExpression.GetOperands() => ImmutableArray.Create(Operand);
+		ReadOnlySpan<SymbolicExpression> IExpression.GetOperands() => MemoryMarshal.CreateReadOnlySpan(ref _operand, 1);
 
 		#endregion
 	}

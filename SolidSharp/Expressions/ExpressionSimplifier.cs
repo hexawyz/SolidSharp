@@ -36,7 +36,7 @@ namespace SolidSharp.Expressions
 			}
 			else
 			{
-				return new VariadicOperationExpression(VariadicOperator.Multiplication, operands.RemoveAt(0));
+				return new VariadicOperationExpression(VariadicOperator.Multiplication, operands.Slice(1).ToImmutableArray());
 			}
 		}
 
@@ -61,11 +61,11 @@ namespace SolidSharp.Expressions
 		}
 
 		// Sorts a list of expression by arbitrary order.
-		private static ImmutableArray<SymbolicExpression>.Builder SortExpressions(ImmutableArray<SymbolicExpression> operands)
+		private static ImmutableArray<SymbolicExpression>.Builder SortExpressions(ReadOnlySpan<SymbolicExpression> operands)
 		{
-			// Use LINQ to provide a stable sort.
+			// Use LINQ to provide a stable sort. 😢
 			var builder = ImmutableArray.CreateBuilder<SymbolicExpression>(operands.Length);
-			builder.AddRange(operands.OrderBy(o => o, SymbolicExpressionComparer.Default));
+			builder.AddRange(operands.ToArray().OrderBy(o => o, SymbolicExpressionComparer.Default));
 			return builder;
 		}
 
@@ -137,8 +137,11 @@ namespace SolidSharp.Expressions
 		}
 
 		public static SymbolicExpression TrySimplifyAddition(ImmutableArray<SymbolicExpression> operands)
+			=> TrySimplifyAddition(operands.AsReadOnlySpan());
+
+		public static SymbolicExpression TrySimplifyAddition(ReadOnlySpan<SymbolicExpression> operands)
 		{
-			if (operands.IsDefaultOrEmpty || operands.Length < 2) throw new ArgumentException();
+			if (operands.Length < 2) throw new ArgumentException();
 
 			if (operands.Length == 2) return operands[0] + operands[1];
 
@@ -298,8 +301,11 @@ namespace SolidSharp.Expressions
 		}
 
 		public static SymbolicExpression TrySimplifyMultiplication(ImmutableArray<SymbolicExpression> operands)
+			=> TrySimplifyMultiplication(operands.AsReadOnlySpan());
+
+		public static SymbolicExpression TrySimplifyMultiplication(ReadOnlySpan<SymbolicExpression> operands)
 		{
-			if (operands.IsDefaultOrEmpty || operands.Length < 2) throw new ArgumentException();
+			if (operands.Length < 2) throw new ArgumentException();
 
 			if (operands.Length == 2) return operands[0] * operands[1];
 
@@ -585,19 +591,15 @@ namespace SolidSharp.Expressions
 				// For simplifying two multiplications, we basically have to to a O(n*m) loop over all operands…
 				return TrySimplifyMultiplicationDivision
 				(
-					a.IsMultiplication() ?
-						a.GetOperands() :
-						ImmutableArray.Create(a),
-					b.IsMultiplication() ?
-						b.GetOperands() :
-						ImmutableArray.Create(b)
+					SymbolicExpressionExtensions.GetFactors(ref a),
+					SymbolicExpressionExtensions.GetFactors(ref b)
 				);
 			}
 
 			return null;
 		}
 
-		private static SymbolicExpression TrySimplifyMultiplicationDivision(ImmutableArray<SymbolicExpression> pItems, ImmutableArray<SymbolicExpression> qItems)
+		private static SymbolicExpression TrySimplifyMultiplicationDivision(ReadOnlySpan<SymbolicExpression> pItems, ReadOnlySpan<SymbolicExpression> qItems)
 		{
 			// For n-ary multiplications, the process is more complicated.
 			// Basically, the simplification has to be done iteratively, for each divisor.
@@ -607,8 +609,8 @@ namespace SolidSharp.Expressions
 			// (e.g. In case the division simplification keeps a division somewhere… I feel like this method may be breaking the process.)
 			// Since tests are passing, the current implementation will do for now.
 
-			var pBuilder = pItems.ToBuilder();
-			var qBuilder = qItems.ToBuilder();
+			var pBuilder = pItems.ToImmutableArrayBuilder();
+			var qBuilder = qItems.ToImmutableArrayBuilder();
 			bool modified = false;
 
 			int i = 0;
@@ -624,7 +626,7 @@ namespace SolidSharp.Expressions
 					pBuilder[i] = d;
 					qBuilder.RemoveAt(j);
 
-					if (TrySimplifyMultiplication(pBuilder.MoveToImmutable()) is SymbolicExpression m)
+					if (TrySimplifyMultiplication(pBuilder.MoveToImmutable().AsReadOnlySpan()) is SymbolicExpression m)
 					{
 						if (m.IsMultiplication())
 						{
@@ -751,7 +753,7 @@ namespace SolidSharp.Expressions
 				}
 				else
 				{
-					return SymbolicExpression.Multiply(ImmutableArray.CreateRange(a.GetOperands(), o => Pow(o, b)));
+					return SymbolicExpression.Multiply(a.GetOperands().Map(o => Pow(o, b)));
 				}
 			}
 			else if (a.IsDivision()) // (x/y)ⁿ => xⁿ/yⁿ
@@ -802,14 +804,9 @@ namespace SolidSharp.Expressions
 
 			if (a.Equals(E))
 			{
-				if (b.IsUnaryOperation())
+				if (b.IsLn())
 				{
-					var op2 = (UnaryOperationExpression)b;
-
-					if (op2.Operator == UnaryOperator.Ln)
-					{
-						return op2.Operand;
-					}
+					return b.GetOperand();
 				}
 			}
 

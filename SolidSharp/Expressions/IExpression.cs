@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
 
 namespace SolidSharp.Expressions
 {
@@ -36,6 +37,8 @@ namespace SolidSharp.Expressions
 		bool IsPower { get; }
 		/// <summary>Gets a value indicating if the expression represents a root.</summary>
 		bool IsRoot { get; }
+		/// <summary>Gets a value indicating if the expression represents a natural logarithm.</summary>
+		bool IsLn { get; }
 
 		/// <summary>Gets a value indicating if the expression represents a mathematical function.</summary>
 		bool IsMathematicalFunction { get; }
@@ -103,6 +106,6 @@ namespace SolidSharp.Expressions
 		/// </remarks>
 		/// <returns>An array containing the operands of the expression.</returns>
 		/// <exception cref="NotSupportedException">This kind of expression doesn't have any operand.</exception>
-		ImmutableArray<SymbolicExpression> GetOperands();
+		ReadOnlySpan<SymbolicExpression> GetOperands();
 	}
 }

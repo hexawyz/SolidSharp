@@ -1,4 +1,7 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace SolidSharp.Expressions.Extensions
 {
@@ -42,6 +45,9 @@ namespace SolidSharp.Expressions.Extensions
 
 		public static bool IsRoot(this SymbolicExpression e)
 			=> ((IExpression)e).IsRoot;
+
+		public static bool IsLn(this SymbolicExpression e)
+			=> ((IExpression)e).IsLn;
 
 		public static bool IsNumber(this SymbolicExpression e)
 			=> ((IExpression)e).IsNumber;
@@ -115,7 +121,7 @@ namespace SolidSharp.Expressions.Extensions
 		/// <returns>The first operand of the expression.</returns>
 		/// <exception cref="NotSupportedException">This kind of expression doesn't have exactly one operand.</exception>
 		public static SymbolicExpression GetFirstOperand(this SymbolicExpression e)
-			=> ((IExpression) e).GetFirstOperand();
+			=> ((IExpression)e).GetFirstOperand();
 
 		/// <summary>Gets the second operand of the expression.</summary>
 		/// <remarks>
@@ -126,7 +132,7 @@ namespace SolidSharp.Expressions.Extensions
 		/// <returns>The second operand of the expression.</returns>
 		/// <exception cref="NotSupportedException">This kind of expression doesn't have exactly one operand.</exception>
 		public static SymbolicExpression GetSecondOperand(this SymbolicExpression e)
-			=> ((IExpression) e).GetSecondOperand();
+			=> ((IExpression)e).GetSecondOperand();
 
 		/// <summary>Gets the operands of the expression.</summary>
 		/// <remarks>
@@ -136,7 +142,15 @@ namespace SolidSharp.Expressions.Extensions
 		/// <param name="e">The expression.</param>
 		/// <returns>An array containing the operands of the expression.</returns>
 		/// <exception cref="NotSupportedException">This kind of expression doesn't have any operand.</exception>
-		public static ImmutableArray<SymbolicExpression> GetOperands(this SymbolicExpression e)
+		public static ReadOnlySpan<SymbolicExpression> GetOperands(this SymbolicExpression e)
 			=> ((IExpression)e).GetOperands();
+
+		/// <summary>Gets the factors composing an expression.</summary>
+		/// <param name="e">The expression whose factors should be returned.</param>
+		/// <returns>A read-only span of the factors composing the expression.</returns>
+		public static ReadOnlySpan<SymbolicExpression> GetFactors(ref SymbolicExpression e)
+			=> e.IsMultiplication() ?
+				e.GetOperands() :
+				MemoryMarshal.CreateReadOnlySpan(ref e, 1);
 	}
 }
